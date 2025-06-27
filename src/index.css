@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+@theme {
+  --color-mint-500: oklch(0.72 0.11 178);
+  --color-lgreen: #B0D226;
+  --color-tgrey: #515151;
+  --color-prym-dark-green: #121B00;
+  --color-prym-green: #00D37F;
+  --color-prym-pink: #F84F94;
+  --color-prym-dark: #222222;
+  --color-prym-light: #F3F4F6;
+}
+
+@font-face {
+  font-family: 'Charlie Display';
+  src: url('./assets/fonts/charlie-display-3.ttf');
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: 'Charlie Display';
+  src: url('./assets/fonts/charlie-display-light.ttf');
+  font-weight: 300;
+}
+
+@font-face {
+  font-family: 'Charlie Display';
+  src: url('./assets/fonts/charlie-display-semibold.ttf');
+  font-weight: 600;
+}
+
+@font-face {
+  font-family: 'Charlie Display';
+  src: url('./assets/fonts/charlie-display-bold.ttf');
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: 'Charlie Display';
+  src: url('./assets/fonts/charlie-display-ultra.ttf');
+  font-weight: 900;
+}
+
+html {
+  font-family: "Charlie Display", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+  /* font-weight: normal; */
+}
