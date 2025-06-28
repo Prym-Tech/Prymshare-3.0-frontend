@@ -15,11 +15,13 @@ const OnboardingPage = () => {
     const onSubmit = async (data) => {
         setLoading(true);
         try {
+            console.log('eddd')
             // API call to the backend to create the first page
             await apiClient.post('/pages/', { brand_name: data.brand_name });
             toast.success('Your page has been created!');
             // Redirect to the main dashboard editor
             navigate('/me/appearance');
+            console.log('eddddddd')
         } catch (error) {
             const errorMsg = error.response?.data?.brand_name?.[0] || 'This name is already taken.';
             toast.error(errorMsg);

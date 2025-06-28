@@ -1,23 +1,59 @@
+import { useAtomValue } from 'jotai';
+import { pageSectionsAtom, pageThemeAtom, activePageAtom } from '../../state/pageAtoms.js';
+
 const MobilePreview = () => {
-    // This will eventually fetch and display the live page data.
-    // For now, it's a styled placeholder.
+    const sections = useAtomValue(pageSectionsAtom);
+    const theme = useAtomValue(pageThemeAtom);
+    const activePage = useAtomValue(activePageAtom);
+
+    const renderSectionPreview = (section) => {
+        switch (section.section_type) {
+            case 'header':
+                return (
+                    <div className="p-6 text-center text-white" style={{ backgroundColor: theme.headerColor || '#121B00' }}>
+                        <div className="w-20 h-20 rounded-full bg-prym-green mx-auto mb-2 border-4 border-white"></div>
+                        <h1 className="font-bold">{activePage?.brand_name || '@yourbrand'}</h1>
+                        <p className="text-sm">{activePage?.title || 'Your Title Here'}</p>
+                        {/* --- Renders the new description field --- */}
+                        <p className="text-xs mt-2 opacity-80">{section.content?.description || 'A short description about you!'}</p>
+                    </div>
+                );
+            case 'links':
+                return (
+                    <div className="p-2 space-y-2">
+                        {(section.content.links || []).map((link, index) => (
+                            <div key={index} className="w-full p-3 bg-prym-dark-green text-white rounded-lg text-center font-semibold truncate">
+                                {link.title || 'Your Link Title'}
+                            </div>
+                        ))}
+                    </div>
+                );
+            default:
+                return (
+                     <div className="p-2">
+                        <div className="w-full h-16 bg-gray-200 border-2 border-dashed rounded-lg flex items-center justify-center text-sm text-gray-400 capitalize">
+                           {section.section_type} Preview
+                        </div>
+                    </div>
+                );
+        }
+    };
 
     return (
-        <div className="w-full max-w-xs h-[700px] bg-white rounded-[40px] shadow-2xl p-4 border-8 border-gray-800 overflow-hidden">
-            <div className="w-full h-full bg-gray-100 rounded-[32px] overflow-y-auto">
-                {/* Header */}
-                <div className="bg-prym-dark-green p-6 text-center text-white">
-                    <div className="w-20 h-20 rounded-full bg-prym-green mx-auto mb-2"></div>
-                    <h1 className="font-bold">@yourbrand</h1>
-                    <p className="text-sm">Your Title Here</p>
-                </div>
-
-                {/* Placeholder Content */}
-                <div className="p-4 space-y-4">
-                    <div className="w-full h-12 bg-gray-300 rounded-lg"></div>
-                    <div className="w-full h-12 bg-gray-300 rounded-lg"></div>
-                    <div className="w-full h-24 bg-gray-300 rounded-lg"></div>
-                </div>
+        <div className="w-full max-w-[280px] h-[580px] bg-white rounded-[34px] shadow-2xl p-3 border-8 border-gray-800">
+            <div className="w-full h-full bg-gray-50 rounded-[22px] overflow-y-auto">
+                {sections.length > 0 ? (
+                    sections.map(section => (
+                        <div key={section.id}>{renderSectionPreview(section)}</div>
+                    ))
+                ) : (
+                    <div className="flex items-center justify-center h-full p-8 text-center text-gray-400">
+                        <div>
+                            <p className="font-semibold">Your page is empty!</p>
+                            <p className="text-sm mt-1">Click the "+ Add Block" button to get started.</p>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
