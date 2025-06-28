@@ -8,6 +8,7 @@ import DraggableSection from './DraggableSection.jsx';
 import AddBlockModal from './AddBlockModal.jsx';
 import Spinner from '../ui/Spinner.jsx';
 import EditLinkBlock from './editors/EditLinkBlock.jsx';
+import EditPageDetails from './editors/EditPageDetails.jsx'; // Import the new editor
 import { updateSectionOrder } from '../../services/sectionService.js';
 import { toast } from 'react-hot-toast';
 
@@ -18,7 +19,9 @@ const PageEditor = () => {
     const [editingSectionId, setEditingSectionId] = useAtom(editingSectionIdAtom);
     const [isModalOpen, setIsModalOpen] = useState(false);
     
-    const editingSection = editingSectionId ? sections.find(s => s.id === editingSectionId) : null;
+    // Check if we are editing the main page details
+    const isEditingPageDetails = editingSectionId === 'page_details';
+    const editingSection = !isEditingPageDetails && editingSectionId ? sections.find(s => s.id === editingSectionId) : null;
 
     useEffect(() => {
         if (!pagesLoading && pages.length > 0 && !activePage) {
@@ -32,20 +35,17 @@ const PageEditor = () => {
         if (active.id !== over.id) {
             const oldIndex = sections.findIndex((s) => s.id === active.id);
             const newIndex = sections.findIndex((s) => s.id === over.id);
-            
             const newSections = [...sections];
             const [removed] = newSections.splice(oldIndex, 1);
             newSections.splice(newIndex, 0, removed);
-            
-            setSections(newSections); // Optimistically update UI
-            
+            setSections(newSections);
             const sectionIds = newSections.map(s => s.id);
             try {
                 await updateSectionOrder(activePage.id, sectionIds);
                 toast.success('Order saved!');
             } catch (error) {
                 toast.error('Failed to save order.');
-                setSections(sections); // Revert on error
+                setSections(sections);
             }
         }
     };
@@ -54,6 +54,11 @@ const PageEditor = () => {
         return <div className="flex justify-center items-center h-full"><Spinner /> <span className="ml-2">Loading your page...</span></div>;
     }
 
+    // --- CONDITIONAL RENDERING LOGIC UPDATED ---
+    if (isEditingPageDetails) {
+        return <EditPageDetails />;
+    }
+    
     if (editingSection) {
         switch (editingSection.section_type) {
             case 'links':
@@ -70,9 +75,14 @@ const PageEditor = () => {
                     <h1 className="text-2xl lg:text-3xl font-bold text-prym-dark-green">{activePage?.brand_name}</h1>
                     <a href={`//${activePage?.slug}.prymshare.co`} target="_blank" rel="noopener noreferrer" className="text-prym-pink hover:underline">prymshare.co/{activePage?.slug}</a>
                 </div>
-                <button className="bg-prym-green text-white font-bold py-2 px-6 rounded-lg shadow-md hover:bg-opacity-90 transition-colors w-full sm:w-auto">
-                    Share
-                </button>
+                <div className="flex gap-2 w-full sm:w-auto">
+                     <button onClick={() => setEditingSectionId('page_details')} className="bg-white border border-gray-300 text-prym-dark-green font-bold py-2 px-6 rounded-lg hover:bg-gray-50 transition-colors w-full sm:w-auto">
+                        Appearance
+                    </button>
+                    <button className="bg-prym-green text-white font-bold py-2 px-6 rounded-lg shadow-md hover:bg-opacity-90 transition-colors w-full sm:w-auto">
+                        Share
+                    </button>
+                </div>
             </div>
             
             <div className="min-h-[300px]">
@@ -109,3 +119,4 @@ const PageEditor = () => {
 };
 
 export default PageEditor;
+
