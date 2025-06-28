@@ -1,42 +1,64 @@
 import { useAtom } from 'jotai';
 import { useNavigate } from 'react-router-dom';
-import { authTokenAtom, userAtom } from '../state/authAtoms.js';
+import { useCallback, useState } from 'react';
+import { authTokenAtom, refreshTokenAtom, userAtom, authLoadingAtom } from '../state/authAtoms.js';
 import apiClient from '../lib/api.js';
 
 export const useAuth = () => {
-    const [token, setToken] = useAtom(authTokenAtom);
+    const [, setAuthToken] = useAtom(authTokenAtom);
+    const [, setRefreshToken] = useAtom(refreshTokenAtom);
     const [user, setUser] = useAtom(userAtom);
+    const [authLoading, setAuthLoading] = useAtom(authLoadingAtom);
     const navigate = useNavigate();
 
-    const login = async (userData, authToken) => {
+    const login = async (userData, access, refresh) => {
+        setAuthToken(access);
+        setRefreshToken(refresh);
         setUser(userData);
-        setToken(authToken);
-
-        // After logging in, check if the user has any pages.
+        apiClient.defaults.headers.common['Authorization'] = `Bearer ${access}`;
+        
         try {
-            const response = await apiClient.get('/pages/', {
-                headers: { Authorization: `Bearer ${authToken}` }
-            });
-
+            const response = await apiClient.get('/pages/');
             if (response.data.length === 0) {
-                // If the user has no pages, send them to onboarding.
                 navigate('/onboarding');
             } else {
-                // Otherwise, send them to their dashboard.
                 navigate('/me/appearance');
             }
         } catch (error) {
             console.error("Failed to check for pages after login", error);
-            // Default to dashboard even if check fails
             navigate('/me/appearance');
         }
     };
 
-    const logout = () => {
+    const logout = useCallback(() => {
+        setAuthToken(null);
+        setRefreshToken(null);
         setUser(null);
-        setToken(null);
+        delete apiClient.defaults.headers.common['Authorization'];
         navigate('/login');
-    };
+    }, [setAuthToken, setRefreshToken, setUser, navigate]);
 
-    return { login, logout, user, token };
+    const verifyAuth = useCallback(async () => {
+        const token = localStorage.getItem('prymshare_access_token');
+        if (!token) {
+            setAuthLoading(false);
+            return;
+        }
+
+        try {
+            // This protected endpoint will succeed if the token is valid,
+            // and fail with a 401 if it's expired.
+            const response = await apiClient.get('/auth/user/');
+            setUser(response.data); // Re-sync user data
+        } catch (error) {
+            // If the token is invalid, the API interceptor will try to refresh it.
+            // If the refresh fails, it will throw an error, and we log out.
+            console.error("Auth verification failed, logging out.", error);
+            logout();
+        } finally {
+            setAuthLoading(false);
+        }
+    }, [setAuthLoading, setUser, logout]);
+
+    return { login, logout, user, authLoading, verifyAuth };
 };

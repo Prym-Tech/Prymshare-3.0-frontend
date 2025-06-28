@@ -1,9 +1,11 @@
+import { useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
+import { useAuth } from './hooks/useAuth.js';
 import MainLayout from './components/layouts/MainLayout.jsx';
 import AuthLayout from './components/layouts/AuthLayout.jsx';
 import PrivateRoute from './components/auth/PrivateRoute.jsx';
 import PublicRoute from './components/auth/PublicRoute.jsx';
-import DashboardLayout from './components/layouts/DashboardLayout.jsx'; // Import new layout
+import DashboardLayout from './components/layouts/DashboardLayout.jsx';
 
 // Import Pages
 import HomePage from './pages/HomePage.jsx';
@@ -12,18 +14,32 @@ import SignupPage from './pages/SignupPage.jsx';
 import ForgotPasswordPage from './pages/ForgotPasswordPage.jsx';
 import ResetPasswordConfirmPage from './pages/ResetPasswordConfirmPage.jsx';
 import ActivateAccountPage from './pages/ActivateAccountPage.jsx';
-import OnboardingPage from './pages/OnboardingPage.jsx'; // Import new page
-import PageEditor from './components/dashboard/PageEditor.jsx'; // Import new component
+import OnboardingPage from './pages/OnboardingPage.jsx';
+import PageEditor from './components/dashboard/PageEditor.jsx';
+import Spinner from './components/ui/Spinner.jsx';
 
 function App() {
+  const { authLoading, verifyAuth } = useAuth();
+
+  useEffect(() => {
+    verifyAuth();
+  }, [verifyAuth]);
+
+  // While the initial authentication check is running, show a loading screen
+  // to prevent any content flicker or incorrect redirects.
+  if (authLoading) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center">
+        <Spinner />
+      </div>
+    );
+  }
+
   return (
     <Routes>
-      {/* Public Routes with the main navbar */}
       <Route element={<MainLayout />}>
         <Route path="/" element={<HomePage />} />
       </Route>
-
-      {/* Auth routes */}
       <Route element={<PublicRoute />}>
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<LoginPage />} />
@@ -31,19 +47,12 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         </Route>
       </Route>
-      
       <Route path="/password/reset/confirm/:uid/:token" element={<ResetPasswordConfirmPage />} />
       <Route path="/activate/:key" element={<ActivateAccountPage />} />
-
-      {/* Protected Routes for logged-in users */}
       <Route element={<PrivateRoute />}>
-        {/* Onboarding route, does not use the main dashboard layout */}
         <Route path="/onboarding" element={<OnboardingPage />} />
-
-        {/* Main Dashboard routes, all nested under the DashboardLayout */}
         <Route element={<DashboardLayout />}>
             <Route path="/me/appearance" element={<PageEditor />} />
-            {/* Add other dashboard routes like /me/analytics here */}
         </Route>
       </Route>
     </Routes>
@@ -51,5 +60,4 @@ function App() {
 }
 
 export default App;
-
 

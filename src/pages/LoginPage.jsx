@@ -18,7 +18,8 @@ const LoginPage = () => {
         setLoading(true);
         try {
             const response = await apiClient.post('/auth/login/', data);
-            login(response.data.user, response.data.access_token);
+            console.log(response);
+            login(response.data.user, response.data.access, response.data.refresh);
             toast.success('Login successful!');
         } catch (error) {
             const errorMsg = error.response?.data?.detail || 'Login failed. Please check your credentials.';

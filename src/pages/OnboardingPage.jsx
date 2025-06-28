@@ -15,15 +15,24 @@ const OnboardingPage = () => {
     const onSubmit = async (data) => {
         setLoading(true);
         try {
-            console.log('eddd')
-            // API call to the backend to create the first page
             await apiClient.post('/pages/', { brand_name: data.brand_name });
             toast.success('Your page has been created!');
-            // Redirect to the main dashboard editor
             navigate('/me/appearance');
-            console.log('eddddddd')
         } catch (error) {
-            const errorMsg = error.response?.data?.brand_name?.[0] || 'This name is already taken.';
+            // --- FIX: Improved error message logic ---
+            console.error("Onboarding Error:", error.toJSON ? error.toJSON() : error);
+            let errorMsg = 'An unknown error occurred.';
+            if (error.response) {
+                // The request was made and the server responded with a status code
+                // that falls out of the range of 2xx
+                errorMsg = error.response.data?.brand_name?.[0] || 'This name may already be taken.';
+            } else if (error.request) {
+                // The request was made but no response was received
+                errorMsg = 'Could not connect to the server. Please check your network.';
+            } else {
+                // Something happened in setting up the request that triggered an Error
+                errorMsg = 'An error occurred before the request could be sent. Please try again.';
+            }
             toast.error(errorMsg);
         } finally {
             setLoading(false);
@@ -66,5 +75,6 @@ const OnboardingPage = () => {
         </div>
     );
 };
-
 export default OnboardingPage;
+
+
