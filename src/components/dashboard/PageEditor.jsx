@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useAtom, useAtomValue } from 'jotai';
 import { DndContext, closestCenter } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable'; // Import arrayMove
 import { pageSectionsAtom, activePageAtom, editingSectionIdAtom } from '../../state/pageAtoms.js';
 import { usePages } from '../../hooks/usePages.js';
 import DraggableSection from './DraggableSection.jsx';
 import AddBlockModal from './AddBlockModal.jsx';
 import Spinner from '../ui/Spinner.jsx';
 import EditLinkBlock from './editors/EditLinkBlock.jsx';
-import EditHeaderBlock from './editors/EditHeaderBlock.jsx'; // Import the new editor
+import EditHeaderBlock from './editors/EditHeaderBlock.jsx';
+import EditVideoCarouselBlock from './editors/EditVideoCarouselBlock.jsx';
 import { updateSectionOrder } from '../../services/sectionService.js';
 import { toast } from 'react-hot-toast';
 
@@ -18,7 +19,6 @@ const PageEditor = () => {
     const [sections, setSections] = useAtom(pageSectionsAtom);
     const [editingSectionId, setEditingSectionId] = useAtom(editingSectionIdAtom);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    
     const editingSection = editingSectionId ? sections.find(s => s.id === editingSectionId) : null;
 
     useEffect(() => {
@@ -28,20 +28,38 @@ const PageEditor = () => {
         }
     }, [pages, pagesLoading, activePage, setActivePage, setSections]);
 
-    const handleDragEnd = async (event) => { /* ... (unchanged) ... */ };
+    const handleDragEnd = async (event) => {
+        const { active, over } = event;
+        if (active.id !== over.id) {
+            const oldIndex = sections.findIndex((s) => s.id === active.id);
+            const newIndex = sections.findIndex((s) => s.id === over.id);
 
-    if (pagesLoading) {
-        return <div className="flex justify-center items-center h-full"><Spinner /> <span className="ml-2">Loading your page...</span></div>;
-    }
+            // Use arrayMove for a robust reordering
+            const reorderedSections = arrayMove(sections, oldIndex, newIndex);
+            
+            setSections(reorderedSections); // Optimistically update UI
+            
+            const sectionIds = reorderedSections.map(s => s.id);
+            try {
+                if(activePage) {
+                    await updateSectionOrder(activePage.id, sectionIds);
+                    toast.success('Order saved!');
+                }
+            } catch (error) {
+                toast.error('Failed to save order.');
+                setSections(sections); // Revert on error
+            }
+        }
+    };
+
+    if (pagesLoading) return <div className="flex justify-center items-center h-full"><Spinner /> <span className="ml-2">Loading...</span></div>;
 
     if (editingSection) {
         switch (editingSection.section_type) {
-            case 'header':
-                return <EditHeaderBlock section={editingSection} />;
-            case 'links':
-                return <EditLinkBlock section={editingSection} />;
-            default:
-                return <div>Editing for "{editingSection.section_type}" not implemented. <button onClick={() => setEditingSectionId(null)} className="text-prym-pink font-semibold">Go Back</button></div>;
+            case 'header': return <EditHeaderBlock section={editingSection} />;
+            case 'links': return <EditLinkBlock section={editingSection} />;
+            case 'video_carousel': return <EditVideoCarouselBlock section={editingSection} />;
+            default: return <div>Editing for "{editingSection.section_type}" not implemented. <button onClick={() => setEditingSectionId(null)} className="text-prym-pink font-semibold">Go Back</button></div>;
         }
     }
     
@@ -58,7 +76,7 @@ const PageEditor = () => {
             </div>
             
             <div className="min-h-[300px]">
-                {sections.length > 0 ? (
+                {sections && sections.length > 0 ? (
                     <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                         <SortableContext items={sections.map(s => s.id)} strategy={verticalListSortingStrategy}>
                             <div className="space-y-4">
@@ -89,5 +107,4 @@ const PageEditor = () => {
         </>
     );
 };
-
 export default PageEditor;
