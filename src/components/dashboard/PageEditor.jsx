@@ -10,6 +10,7 @@ import Spinner from '../ui/Spinner.jsx';
 import EditLinkBlock from './editors/EditLinkBlock.jsx';
 import EditHeaderBlock from './editors/EditHeaderBlock.jsx';
 import EditVideoCarouselBlock from './editors/EditVideoCarouselBlock.jsx';
+import EditImageCarouselBlock from './editors/EditImageCarouselBlock.jsx';
 import { updateSectionOrder } from '../../services/sectionService.js';
 import { toast } from 'react-hot-toast';
 
@@ -59,6 +60,7 @@ const PageEditor = () => {
             case 'header': return <EditHeaderBlock section={editingSection} />;
             case 'links': return <EditLinkBlock section={editingSection} />;
             case 'video_carousel': return <EditVideoCarouselBlock section={editingSection} />;
+            case 'carousel': return <EditImageCarouselBlock section={editingSection} />;
             default: return <div>Editing for "{editingSection.section_type}" not implemented. <button onClick={() => setEditingSectionId(null)} className="text-prym-pink font-semibold">Go Back</button></div>;
         }
     }

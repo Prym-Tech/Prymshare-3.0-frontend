@@ -22,8 +22,8 @@ const EditLinkBlock = ({ section }) => {
     
     // For now, we'll handle image changes by storing the preview URL.
     // A real implementation would upload the file and store the returned URL.
-    const handleImageChange = (linkIndex, file, previewUrl) => {
-        updateLinkField(linkIndex, 'imageUrl', previewUrl);
+    const handleImageChange = (linkIndex, permanentUrl) => {
+        updateLinkField(linkIndex, 'imageUrl', permanentUrl);
     };
 
     const addLink = () => {
@@ -68,7 +68,7 @@ const EditLinkBlock = ({ section }) => {
                         <div className="flex items-start gap-4">
                             <ImageUploader 
                                 existingImageUrl={link.imageUrl}
-                                onImageChange={(file, previewUrl) => handleImageChange(index, file, previewUrl)}
+                                onImageChange={(permanentUrl) => handleImageChange(index, permanentUrl)}
                             />
                             <div className="flex-1 space-y-3">
                                 <input type="text" placeholder="Title" value={link.title} onChange={(e) => updateLinkField(index, 'title', e.target.value)} className="w-full px-3 py-2 border rounded-lg"/>

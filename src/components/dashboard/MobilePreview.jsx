@@ -73,15 +73,19 @@ const MobilePreview = () => {
         switch (section.section_type) {
             case 'links':
                 return (
-                    <div className="px-2 py-1 space-y-2">
+                    <div className="p-2 space-y-2">
                         {(section.content.links || []).map((link, index) => (
                             <a key={index} href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center w-full p-2 bg-white text-prym-dark-green rounded-lg text-left font-semibold truncate shadow-md hover:scale-[1.03] transition-transform">
-                                {/* -- Image size reduced -- */}
-                                <div className="flex-shrink-0 w-10 h-10 bg-gray-200 rounded-md mr-3">
-                                    {link.imageUrl && <img src={link.imageUrl} alt={link.title} className="w-full h-full object-cover rounded-md" />}
-                                </div>
-                                {/* -- Font size reduced -- */}
-                                <span className="text-sm">{link.title || 'Your Link Title'}</span>
+                                {link.imageUrl ? (
+                                    <>
+                                        <div className="flex-shrink-0 w-10 h-10 bg-gray-200 rounded-md mr-3">
+                                            <img src={link.imageUrl} alt={link.title} className="w-full h-full object-cover rounded-md" />
+                                        </div>
+                                        <span className="text-sm">{link.title || 'Your Link Title'}</span>
+                                    </>
+                                ) : (
+                                    <span className="text-sm text-center w-full">{link.title || 'Your Link Title'}</span>
+                                )}
                             </a>
                         ))}
                     </div>
@@ -91,20 +95,20 @@ const MobilePreview = () => {
                 if (videos.length === 0) return null;
                 return (
                     <div className="p-2">
+                        {section.content.title && <h3 className="font-bold text-prym-dark-green mb-2 px-1">{section.content.title}</h3>}
                         <Swiper
                             modules={[Navigation, Pagination]}
                             spaceBetween={10}
                             slidesPerView={1}
-                            navigation={true} // Enable navigation
+                            navigation={true}
                             pagination={{ clickable: true }}
-                            className="w-full styled-swiper" // Add a class for custom styling
+                            className="w-full styled-swiper"
                         >
                             {videos.map((video, index) => {
                                 const embedUrl = getYoutubeEmbedUrl(video.videoUrl);
                                 return (
                                     <SwiperSlide key={index}>
                                         <div className="bg-white p-3 rounded-lg shadow-md">
-                                            {/* -- Font size reduced -- */}
                                             <h3 className="font-semibold text-prym-dark-green mb-2 text-sm">{video.title}</h3>
                                             {embedUrl ? <iframe src={embedUrl} title={video.title} frameBorder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope" allowFullScreen className="w-full aspect-video rounded-md"></iframe> : <div className="w-full aspect-video rounded-md bg-gray-200 flex items-center justify-center text-sm text-gray-500">Invalid URL</div>}
                                             <p className="text-xs text-gray-500 mt-2">{video.description}</p>
@@ -115,6 +119,27 @@ const MobilePreview = () => {
                         </Swiper>
                     </div>
                 );
+            case 'carousel':
+                 const slides = section.content.slides || [];
+                 if (slides.length === 0) return null;
+                 return (
+                    <div className="p-2">
+                        {section.content.title && <h3 className="font-bold text-prym-dark-green mb-2 px-1">{section.content.title}</h3>}
+                        <Swiper modules={[Navigation, Pagination]} spaceBetween={10} slidesPerView={1} navigation pagination={{ clickable: true }} className="w-full styled-swiper">
+                            {slides.map((slide, index) => (
+                                <SwiperSlide key={index}>
+                                    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                                        <div className="w-full aspect-square bg-gray-200"><img src={slide.imageUrl} alt={slide.title} className="w-full h-full object-cover"/></div>
+                                        <div className="p-3">
+                                            <h4 className="font-semibold text-prym-dark-green text-sm">{slide.title}</h4>
+                                            <p className="text-xs text-gray-500 mt-1">{slide.description}</p>
+                                        </div>
+                                    </div>
+                                </SwiperSlide>
+                            ))}
+                        </Swiper>
+                    </div>
+                 );
             default:
                 return <div className="p-2"><div className="w-full h-16 bg-gray-200 border-2 border-dashed rounded-lg flex items-center justify-center text-sm text-gray-400 capitalize">{section.section_type} Preview</div></div>;
         }
@@ -124,7 +149,6 @@ const MobilePreview = () => {
 
     return (
         <div className="w-full max-w-[280px] h-[580px] bg-white rounded-[34px] shadow-2xl p-3 border-8 border-gray-800">
-            {/* Custom Styles for the Swiper Carousel */}
             <style>
                 {`
                     .styled-swiper .swiper-button-next, .styled-swiper .swiper-button-prev {

@@ -23,7 +23,7 @@ const blockGroups = [
         title: 'Content & Links',
         blocks: [
             { type: 'links', text: 'Links', icon: ICONS.links },
-            { type: 'carousel', text: 'Carousel', icon: ICONS.carousel },
+            { type: 'carousel', text: 'Image Carousel', icon: ICONS.carousel },
             { type: 'video_carousel', text: 'Video Carousel', icon: ICONS.video },
         ]
     },
