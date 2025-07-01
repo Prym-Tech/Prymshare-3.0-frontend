@@ -66,7 +66,7 @@ const CustomizePage = () => {
     };
 
     const ColorInput = ({ label, colorName }) => (
-        <div>
+        <div className="relative">
             <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
             <div className="flex items-center gap-2">
                 <div onClick={() => setActiveColorPicker(activeColorPicker === colorName ? null : colorName)}
@@ -77,9 +77,13 @@ const CustomizePage = () => {
                 <button onClick={() => handleResetColor(colorName)} className="text-gray-400 hover:text-prym-dark-green"><HiRefresh/></button>
             </div>
             {activeColorPicker === colorName && (
-                <div className="absolute z-10 mt-2">
-                    <div className="fixed inset-0" onClick={() => setActiveColorPicker(null)} />
-                    <SketchPicker color={draftTheme[colorName]} onChangeComplete={(c) => handleColorChange(c, colorName)} />
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                    <div className="relative">
+                        <div className="fixed inset-0" onClick={() => setActiveColorPicker(null)} />
+                        <div className="relative z-10">
+                            <SketchPicker color={draftTheme[colorName]} onChangeComplete={(c) => handleColorChange(c, colorName)} />
+                        </div>
+                    </div>
                 </div>
             )}
         </div>
@@ -112,6 +116,16 @@ const CustomizePage = () => {
                                 {draftTheme.template === 'image_bg' ? (
                                     <div><label className="block text-sm font-medium text-gray-700 mb-2">Background Image</label><ImageUploader existingImageUrl={draftTheme.backgroundImageUrl} onImageChange={handleImageChange} /></div>
                                 ) : ( <ColorInput label="Background Color" colorName="bgColor" /> )}
+                            </Disclosure.Panel>
+                        </div>
+                    )}
+                </Disclosure>
+                <Disclosure>
+                    {({ open }) => (
+                        <div className="bg-white p-4 rounded-lg shadow-sm">
+                            <Disclosure.Button className="w-full flex justify-between items-center"><span className="font-semibold">Block Style</span><HiChevronDown className={`h-5 w-5 ${open ? 'transform rotate-180' : ''}`} /></Disclosure.Button>
+                            <Disclosure.Panel className="mt-4 pt-4 border-t">
+                                <ColorInput label="Block Background Color" colorName="blockBgColor" />
                             </Disclosure.Panel>
                         </div>
                     )}

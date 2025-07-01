@@ -75,6 +75,9 @@ const MobilePreview = () => {
     };
 
     const renderSectionPreview = (section) => {
+        const blockStyle = theme.template === 'shadow' ? { backgroundColor: theme.blockBgColor, border: '1px solid #E5E7EB' } : { backgroundColor: theme.blockBgColor };
+        const linkStyle = { backgroundColor: theme.linkColor, color: theme.linkTextColor };
+        const shadowLinkStyle = { ...linkStyle, boxShadow: `4px 4px 0px ${theme.buttonShadowColor}` };
         switch (section.section_type) {
             case 'links':
                 return (
@@ -82,7 +85,7 @@ const MobilePreview = () => {
                         {(section.content.links || []).map((link, index) => (
                             <a key={index} href={link.url} target="_blank" rel="noopener noreferrer" 
                             className="flex items-center w-full p-2 rounded-lg text-left font-semibold truncate shadow-md hover:scale-[1.03] transition-transform"
-                            style={{ backgroundColor: theme.linkColor, color: theme.linkTextColor }}
+                            style={theme.template === 'shadow' ? shadowLinkStyle : linkStyle}
                          >
                                 {link.imageUrl ? (
                                     <>
@@ -103,7 +106,8 @@ const MobilePreview = () => {
                 if (videos.length === 0) return null;
                 return (
                     <div className="p-2">
-                        {section.content.title && <h3 className="font-bold text-prym-dark-green mb-2 px-1">{section.content.title}</h3>}
+                        {section.content.title && <h3 className="font-bold mb-2 px-1" style={{color: theme.textColor}}>{section.content.title}</h3>}
+                        <div className="p-3 rounded-lg" style={blockStyle}>
                         <Swiper
                             modules={[Navigation, Pagination]}
                             spaceBetween={10}
@@ -116,7 +120,7 @@ const MobilePreview = () => {
                                 const embedUrl = getYoutubeEmbedUrl(video.videoUrl);
                                 return (
                                     <SwiperSlide key={index}>
-                                        <div className="bg-white p-3 rounded-lg shadow-md">
+                                        <div className="bg-white p-3 rounded-lg shadow-md ">
                                             <h3 className="font-semibold text-prym-dark-green mb-2 text-sm">{video.title}</h3>
                                             {embedUrl ? <iframe src={embedUrl} title={video.title} frameBorder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope" allowFullScreen className="w-full aspect-video rounded-md"></iframe> : <div className="w-full aspect-video rounded-md bg-gray-200 flex items-center justify-center text-sm text-gray-500">Invalid URL</div>}
                                             <p className="text-xs text-gray-500 mt-2">{video.description}</p>
@@ -125,6 +129,7 @@ const MobilePreview = () => {
                                 )
                             })}
                         </Swiper>
+                        </div>
                     </div>
                 );
             case 'carousel':
@@ -132,11 +137,12 @@ const MobilePreview = () => {
                  if (slides.length === 0) return null;
                  return (
                     <div className="p-2">
-                        {section.content.title && <h3 className="font-bold text-prym-dark-green mb-2 px-1">{section.content.title}</h3>}
+                        {section.content.title && <h3 className="font-bold mb-2 px-1" style={{color: theme.textColor}}>{section.content.title}</h3>}
+                        <div className="p-3 rounded-lg" style={blockStyle}>
                         <Swiper modules={[Navigation, Pagination]} spaceBetween={10} slidesPerView={1} navigation pagination={{ clickable: true }} className="w-full styled-swiper">
                             {slides.map((slide, index) => (
                                 <SwiperSlide key={index}>
-                                    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                                    <div className="bg-white rounded-lg shadow-md overflow-hidden" >
                                         <div className="w-full aspect-square bg-gray-200"><img src={slide.imageUrl} alt={slide.title} className="w-full h-full object-cover"/></div>
                                         <div className="p-3">
                                             <h4 className="font-semibold text-prym-dark-green text-sm">{slide.title}</h4>
@@ -146,6 +152,7 @@ const MobilePreview = () => {
                                 </SwiperSlide>
                             ))}
                         </Swiper>
+                        </div>
                     </div>
                  );
             default:
