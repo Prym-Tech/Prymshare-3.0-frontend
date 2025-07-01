@@ -1,6 +1,7 @@
 import { useAtomValue } from 'jotai';
-import { pageSectionsAtom, activePageAtom } from '../../state/pageAtoms.js';
-import { FaTwitter, FaInstagram, FaFacebook, FaLinkedin, FaTiktok } from 'react-icons/fa';
+import { pageSectionsAtom, activePageAtom, pageThemeAtom } from '../../state/pageAtoms.js';
+import { templates } from '../../lib/templates.js';
+import { FaTwitter, FaInstagram, FaFacebook, FaLinkedin, FaTiktok, FaYoutube } from 'react-icons/fa';
 // Import Swiper React components
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination } from 'swiper/modules';
@@ -12,6 +13,10 @@ import 'swiper/css/pagination';
 const MobilePreview = () => {
     const sections = useAtomValue(pageSectionsAtom);
     const activePage = useAtomValue(activePageAtom);
+    // const theme = useAtomValue(pageThemeAtom);
+
+    const theme = activePage ? { ...templates.default.styles, ...(templates[activePage.theme_settings.template]?.styles || {}), ...activePage.theme_settings } : templates.default.styles;
+
 
     const getYoutubeEmbedUrl = (url) => {
         if (!url) return null;
@@ -30,7 +35,7 @@ const MobilePreview = () => {
         const { style = 'photo_top', profileImageUrl, bannerImageUrl, description, social_links = {} } = section.content || {};
         const socialIcons = {
             twitter: <FaTwitter />, instagram: <FaInstagram />, facebook: <FaFacebook />,
-            linkedin: <FaLinkedin />, tiktok: <FaTiktok />
+            linkedin: <FaLinkedin />, tiktok: <FaTiktok />, youtube: <FaYoutube />
         };
         const hasSocials = Object.values(social_links || {}).some(link => link);
 
@@ -75,7 +80,10 @@ const MobilePreview = () => {
                 return (
                     <div className="p-2 space-y-2">
                         {(section.content.links || []).map((link, index) => (
-                            <a key={index} href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center w-full p-2 bg-white text-prym-dark-green rounded-lg text-left font-semibold truncate shadow-md hover:scale-[1.03] transition-transform">
+                            <a key={index} href={link.url} target="_blank" rel="noopener noreferrer" 
+                            className="flex items-center w-full p-2 rounded-lg text-left font-semibold truncate shadow-md hover:scale-[1.03] transition-transform"
+                            style={{ backgroundColor: theme.linkColor, color: theme.linkTextColor }}
+                         >
                                 {link.imageUrl ? (
                                     <>
                                         <div className="flex-shrink-0 w-10 h-10 bg-gray-200 rounded-md mr-3">
@@ -147,6 +155,14 @@ const MobilePreview = () => {
     
     const headerSection = sections.find(s => s.section_type === 'header');
 
+    const pageStyle = {
+        backgroundColor: theme.bgColor,
+        color: theme.textColor,
+        backgroundImage: theme.template === 'image_bg' && theme.backgroundImageUrl ? `url(${theme.backgroundImageUrl})` : 'none',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+    };
+
     return (
         <div className="w-full max-w-[280px] h-[580px] bg-white rounded-[34px] shadow-2xl p-3 border-8 border-gray-800">
             <style>
@@ -169,7 +185,7 @@ const MobilePreview = () => {
                     }
                 `}
             </style>
-            <div className="w-full h-full bg-gray-100 rounded-[22px] overflow-y-auto">
+            <div className="w-full h-full rounded-[22px] overflow-y-auto" style={pageStyle}>
                 {headerSection && renderHeader(headerSection)}
                 
                 {sections.filter(s => s.section_type !== 'header').map(section => (

@@ -15,6 +15,8 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage.jsx';
 import ResetPasswordConfirmPage from './pages/ResetPasswordConfirmPage.jsx';
 import ActivateAccountPage from './pages/ActivateAccountPage.jsx';
 import OnboardingPage from './pages/OnboardingPage.jsx';
+import CustomizePage from './pages/CustomizePage.jsx';
+
 import PageEditor from './components/dashboard/PageEditor.jsx';
 import Spinner from './components/ui/Spinner.jsx';
 
@@ -53,6 +55,7 @@ function App() {
         <Route path="/onboarding" element={<OnboardingPage />} />
         <Route element={<DashboardLayout />}>
             <Route path="/me/appearance" element={<PageEditor />} />
+            <Route path="/me/customize" element={<CustomizePage />} /> 
         </Route>
       </Route>
     </Routes>

@@ -15,9 +15,11 @@ const EditImageCarouselBlock = ({ section }) => {
     const slides = draftContent.slides || [];
 
     const updateSlideField = (index, field, value) => {
-        const newSlides = [...slides];
-        newSlides[index] = { ...newSlides[index], [field]: value };
-        setDraftContent({ ...draftContent, slides: newSlides });
+        setDraftContent(currentDraft => {
+            const newSlides = [...(currentDraft.slides || [])];
+            newSlides[index] = { ...(newSlides[index] || {}), [field]: value };
+            return { ...currentDraft, slides: newSlides };
+        });
     };
     
     const handleImageChange = (index, permanentUrl) => {
@@ -25,14 +27,18 @@ const EditImageCarouselBlock = ({ section }) => {
     };
 
     const addSlide = () => {
-        const newSlides = [...slides, { id: Date.now(), title: '', description: '', imageUrl: null }];
-        setDraftContent({ ...draftContent, slides: newSlides });
+        setDraftContent(currentDraft => {
+            const newSlides = [...(currentDraft.slides || []), { id: Date.now(), title: '', description: '', imageUrl: null }];
+            return { ...currentDraft, slides: newSlides };
+        });
     };
 
     const removeSlide = (index) => {
-        const newSlides = [...slides];
-        newSlides.splice(index, 1);
-        setDraftContent({ ...draftContent, slides: newSlides });
+        setDraftContent(currentDraft => {
+            const newSlides = [...(currentDraft.slides || [])];
+            newSlides.splice(index, 1);
+            return { ...currentDraft, slides: newSlides };
+        });
     };
 
     const handleSave = async () => {
@@ -66,8 +72,8 @@ const EditImageCarouselBlock = ({ section }) => {
                         <div className="flex items-start gap-4">
                             <ImageUploader existingImageUrl={slide.imageUrl} onImageChange={(url) => handleImageChange(index, url)} />
                             <div className="flex-1 space-y-3">
-                                <input type="text" placeholder="Image Title" value={slide.title} onChange={(e) => updateSlideField(index, 'title', e.target.value)} className="w-full px-3 py-2 border rounded-lg"/>
-                                <textarea placeholder="Description (optional)" value={slide.description} onChange={(e) => updateSlideField(index, 'description', e.target.value)} rows="2" className="w-full px-3 py-2 border rounded-lg"></textarea>
+                                <input type="text" placeholder="Image Title" value={slide.title || ''} onChange={(e) => updateSlideField(index, 'title', e.target.value)} className="w-full px-3 py-2 border rounded-lg"/>
+                                <textarea placeholder="Description (optional)" value={slide.description || ''} onChange={(e) => updateSlideField(index, 'description', e.target.value)} rows="2" className="w-full px-3 py-2 border rounded-lg"></textarea>
                             </div>
                         </div>
                     </div>

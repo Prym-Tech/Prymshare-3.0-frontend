@@ -1,18 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useAtom, useAtomValue } from 'jotai';
 import { DndContext, closestCenter } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable'; // Import arrayMove
+import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import { pageSectionsAtom, activePageAtom, editingSectionIdAtom } from '../../state/pageAtoms.js';
 import { usePages } from '../../hooks/usePages.js';
 import DraggableSection from './DraggableSection.jsx';
 import AddBlockModal from './AddBlockModal.jsx';
 import Spinner from '../ui/Spinner.jsx';
-import EditLinkBlock from './editors/EditLinkBlock.jsx';
-import EditHeaderBlock from './editors/EditHeaderBlock.jsx';
-import EditVideoCarouselBlock from './editors/EditVideoCarouselBlock.jsx';
-import EditImageCarouselBlock from './editors/EditImageCarouselBlock.jsx';
 import { updateSectionOrder } from '../../services/sectionService.js';
 import { toast } from 'react-hot-toast';
+import EditHeaderBlock from './editors/EditHeaderBlock.jsx';
+import EditLinkBlock from './editors/EditLinkBlock.jsx';
+import EditVideoCarouselBlock from './editors/EditVideoCarouselBlock.jsx';
+import EditImageCarouselBlock from './editors/EditImageCarouselBlock.jsx';
+import DashboardTabs from './DashboardTabs.jsx';
 
 const PageEditor = () => {
     const { pages, loading: pagesLoading } = usePages();
@@ -32,15 +33,14 @@ const PageEditor = () => {
     const handleDragEnd = async (event) => {
         const { active, over } = event;
         if (active.id !== over.id) {
-            const oldIndex = sections.findIndex((s) => s.id === active.id);
-            const newIndex = sections.findIndex((s) => s.id === over.id);
-
-            // Use arrayMove for a robust reordering
-            const reorderedSections = arrayMove(sections, oldIndex, newIndex);
-            
-            setSections(reorderedSections); // Optimistically update UI
-            
-            const sectionIds = reorderedSections.map(s => s.id);
+            const draggableSections = sections.filter(s => s.section_type !== 'header');
+            const oldIndex = draggableSections.findIndex((s) => s.id === active.id);
+            const newIndex = draggableSections.findIndex((s) => s.id === over.id);
+            const reordered = arrayMove(draggableSections, oldIndex, newIndex);
+            const headerSection = sections.find(s => s.section_type === 'header');
+            const newFullSectionList = [headerSection, ...reordered].filter(Boolean);
+            setSections(newFullSectionList);
+            const sectionIds = newFullSectionList.map(s => s.id);
             try {
                 if(activePage) {
                     await updateSectionOrder(activePage.id, sectionIds);
@@ -48,12 +48,14 @@ const PageEditor = () => {
                 }
             } catch (error) {
                 toast.error('Failed to save order.');
-                setSections(sections); // Revert on error
+                setSections(sections);
             }
         }
     };
 
-    if (pagesLoading) return <div className="flex justify-center items-center h-full"><Spinner /> <span className="ml-2">Loading...</span></div>;
+    if (!activePage) {
+        return <div className="flex justify-center items-center h-full"><Spinner /> <span className="ml-2">Loading...</span></div>;
+    }
 
     if (editingSection) {
         switch (editingSection.section_type) {
@@ -65,8 +67,12 @@ const PageEditor = () => {
         }
     }
     
+    const headerSection = sections.find(s => s.section_type === 'header');
+    const draggableSections = sections.filter(s => s.section_type !== 'header');
+
     return (
-        <>
+        <div className="bg-gray-50 p-4 sm:p-6 rounded-2xl">
+            <DashboardTabs />
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
                 <div>
                     <h1 className="text-2xl lg:text-3xl font-bold text-prym-dark-green">{activePage?.brand_name}</h1>
@@ -77,36 +83,28 @@ const PageEditor = () => {
                 </button>
             </div>
             
-            <div className="min-h-[300px]">
-                {sections && sections.length > 0 ? (
-                    <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                        <SortableContext items={sections.map(s => s.id)} strategy={verticalListSortingStrategy}>
-                            <div className="space-y-4">
-                                {sections.map(section => (
-                                   <DraggableSection key={section.id} section={section} />
-                                ))}
-                            </div>
-                        </SortableContext>
-                    </DndContext>
-                ) : (
-                    <div className="text-center py-12 border-2 border-dashed rounded-lg">
-                        <p className="text-gray-500 font-semibold">Your page is empty!</p>
-                        <p className="text-sm text-gray-400 mt-1">Click "+ Add Block" to get started.</p>
-                    </div>
-                )}
+            <div className="space-y-4">
+                {headerSection && <DraggableSection section={headerSection} isDraggable={false} />}
+                <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                    <SortableContext items={draggableSections.map(s => s.id)} strategy={verticalListSortingStrategy}>
+                        {draggableSections.map(section => (
+                           <DraggableSection key={section.id} section={section} />
+                        ))}
+                    </SortableContext>
+                </DndContext>
             </div>
 
             <div className="mt-6">
                 <button 
                     onClick={() => setIsModalOpen(true)}
-                    className="w-full border-2 border-dashed border-gray-300 rounded-lg py-4 text-center text-gray-500 hover:bg-gray-50 hover:border-prym-pink hover:text-prym-pink transition-all focus:outline-none focus:ring-2 focus:ring-prym-pink"
+                    className="w-full bg-prym-pink/10 border-2 border-dashed border-prym-pink/30 rounded-lg py-4 text-center text-prym-pink hover:bg-prym-pink/20 hover:border-prym-pink transition-all focus:outline-none"
                 >
                     <span className="font-semibold text-lg">+ Add Block</span>
                 </button>
             </div>
 
             <AddBlockModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-        </>
+        </div>
     );
 };
 export default PageEditor;

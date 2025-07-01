@@ -1,40 +1,42 @@
 import { useState } from 'react';
-import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import { useSetAtom, useAtomValue, useAtom } from 'jotai';
 import { pageSectionsAtom, editingSectionIdAtom, activePageAtom } from '../../../state/pageAtoms.js';
 import { HiOutlineArrowLeft, HiOutlineTrash } from 'react-icons/hi';
 import { updateSection } from '../../../services/sectionService.js';
 import { toast } from 'react-hot-toast';
-import ImageUploader from '../../ui/ImageUploader.jsx'; // Import new component
+import ImageUploader from '../../ui/ImageUploader.jsx';
 
 const EditLinkBlock = ({ section }) => {
     const setEditingSectionId = useSetAtom(editingSectionIdAtom);
     const [sections, setSections] = useAtom(pageSectionsAtom);
     const activePage = useAtomValue(activePageAtom);
-
-    // Note: Auto-saving with file uploads is complex. We'll switch to a manual save button for this editor.
     const [draftContent, setDraftContent] = useState(section.content);
 
     const updateLinkField = (linkIndex, field, value) => {
-        const newLinks = [...(draftContent.links || [])];
-        newLinks[linkIndex] = { ...newLinks[linkIndex], [field]: value };
-        setDraftContent({ ...draftContent, links: newLinks });
+        setDraftContent(currentDraft => {
+            const newLinks = [...(currentDraft.links || [])];
+            newLinks[linkIndex] = { ...(newLinks[linkIndex] || {}), [field]: value };
+            return { ...currentDraft, links: newLinks };
+        });
     };
-    
-    // For now, we'll handle image changes by storing the preview URL.
-    // A real implementation would upload the file and store the returned URL.
+
     const handleImageChange = (linkIndex, permanentUrl) => {
         updateLinkField(linkIndex, 'imageUrl', permanentUrl);
     };
 
     const addLink = () => {
-        const newLinks = [...(draftContent.links || []), { id: Date.now(), title: '', url: '', imageUrl: null }];
-        setDraftContent({ ...draftContent, links: newLinks });
+        setDraftContent(currentDraft => {
+            const newLinks = [...(currentDraft.links || []), { id: Date.now(), title: '', url: '', imageUrl: null }];
+            return { ...currentDraft, links: newLinks };
+        });
     };
 
     const removeLink = (linkIndex) => {
-        const newLinks = [...(draftContent.links || [])];
-        newLinks.splice(linkIndex, 1);
-        setDraftContent({ ...draftContent, links: newLinks });
+        setDraftContent(currentDraft => {
+            const newLinks = [...(currentDraft.links || [])];
+            newLinks.splice(linkIndex, 1);
+            return { ...currentDraft, links: newLinks };
+        });
     };
 
     const handleSave = async () => {
@@ -42,7 +44,7 @@ const EditLinkBlock = ({ section }) => {
             const updatedSection = await updateSection(activePage.id, section.id, { content: draftContent });
             setSections(prev => prev.map(s => s.id === section.id ? updatedSection : s));
             toast.success("Links saved!");
-            setEditingSectionId(null); // Go back after saving
+            setEditingSectionId(null);
         } catch (error) {
             toast.error("Failed to save links.");
         }
@@ -71,8 +73,8 @@ const EditLinkBlock = ({ section }) => {
                                 onImageChange={(permanentUrl) => handleImageChange(index, permanentUrl)}
                             />
                             <div className="flex-1 space-y-3">
-                                <input type="text" placeholder="Title" value={link.title} onChange={(e) => updateLinkField(index, 'title', e.target.value)} className="w-full px-3 py-2 border rounded-lg"/>
-                                <input type="url" placeholder="https://example.com" value={link.url} onChange={(e) => updateLinkField(index, 'url', e.target.value)} className="w-full px-3 py-2 border rounded-lg"/>
+                                <input type="text" placeholder="Title" value={link.title || ''} onChange={(e) => updateLinkField(index, 'title', e.target.value)} className="w-full px-3 py-2 border rounded-lg"/>
+                                <input type="url" placeholder="https://example.com" value={link.url || ''} onChange={(e) => updateLinkField(index, 'url', e.target.value)} className="w-full px-3 py-2 border rounded-lg"/>
                             </div>
                         </div>
                     </div>

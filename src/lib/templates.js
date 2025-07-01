@@ -1,0 +1,58 @@
+export const templates = {
+    default: {
+        name: "Default",
+        previewStyles: { bgColor: "#F3F4F6", linkColor: "#FFFFFF", buttonColor: "#121B00" },
+        styles: {
+            template: "default",
+            bgColor: "#F3F4F6",
+            textColor: "#121B00",
+            linkColor: "#FFFFFF",
+            linkTextColor: "#121B00",
+            actionButtonColor: "#121B00",
+            actionButtonTextColor: "#FFFFFF",
+            backgroundImageUrl: "",
+        },
+    },
+    dark: {
+        name: "Dark",
+        previewStyles: { bgColor: "#121B00", linkColor: "#2a3b10", buttonColor: "#FFFFFF" },
+        styles: {
+            template: "dark",
+            bgColor: "#121B00",
+            textColor: "#FFFFFF",
+            linkColor: "#2a3b10",
+            linkTextColor: "#FFFFFF",
+            actionButtonColor: "#FFFFFF",
+            actionButtonTextColor: "#121B00",
+            backgroundImageUrl: "",
+        },
+    },
+    classic: {
+        name: "Classic",
+        previewStyles: { bgColor: "#E8E5E0", linkColor: "#FFFFFF", buttonColor: "#3B3B3B" },
+        styles: {
+            template: "classic",
+            bgColor: "#E8E5E0",
+            textColor: "#3B3B3B",
+            linkColor: "#FFFFFF",
+            linkTextColor: "#3B3B3B",
+            actionButtonColor: "#3B3B3B",
+            actionButtonTextColor: "#FFFFFF",
+            backgroundImageUrl: "",
+        },
+    },
+    image_bg: {
+        name: "Image",
+        previewStyles: { bgColor: "#cccccc", linkColor: "rgba(255, 255, 255, 0.8)", buttonColor: "#121B00" },
+        styles: {
+            template: "image_bg",
+            bgColor: "#FFFFFF",
+            textColor: "#FFFFFF",
+            linkColor: "rgba(255, 255, 255, 0.8)",
+            linkTextColor: "#121B00",
+            actionButtonColor: "#121B00",
+            actionButtonTextColor: "#FFFFFF",
+            backgroundImageUrl: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=2070",
+        },
+    },
+};

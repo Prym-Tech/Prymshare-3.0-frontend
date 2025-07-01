@@ -14,20 +14,26 @@ const EditVideoCarouselBlock = ({ section }) => {
     const videos = draftContent.videos || [];
 
     const updateVideoField = (index, field, value) => {
-        const newVideos = [...videos];
-        newVideos[index] = { ...newVideos[index], [field]: value };
-        setDraftContent({ ...draftContent, videos: newVideos });
+        setDraftContent(currentDraft => {
+            const newVideos = [...(currentDraft.videos || [])];
+            newVideos[index] = { ...(newVideos[index] || {}), [field]: value };
+            return { ...currentDraft, videos: newVideos };
+        });
     };
 
     const addVideo = () => {
-        const newVideos = [...videos, { id: Date.now(), title: '', description: '', videoUrl: '' }];
-        setDraftContent({ ...draftContent, videos: newVideos });
+        setDraftContent(currentDraft => {
+            const newVideos = [...(currentDraft.videos || []), { id: Date.now(), title: '', description: '', videoUrl: '' }];
+            return { ...currentDraft, videos: newVideos };
+        });
     };
 
     const removeVideo = (index) => {
-        const newVideos = [...videos];
-        newVideos.splice(index, 1);
-        setDraftContent({ ...draftContent, videos: newVideos });
+        setDraftContent(currentDraft => {
+            const newVideos = [...(currentDraft.videos || [])];
+            newVideos.splice(index, 1);
+            return { ...currentDraft, videos: newVideos };
+        });
     };
 
     const handleSave = async () => {
@@ -68,9 +74,9 @@ const EditVideoCarouselBlock = ({ section }) => {
                             <button onClick={() => removeVideo(index)} className="text-gray-400 hover:text-red-500"><HiOutlineTrash className="h-5 w-5"/></button>
                         </div>
                         <div className="space-y-3">
-                            <input type="text" placeholder="Video Title" value={video.title} onChange={(e) => updateVideoField(index, 'title', e.target.value)} className="w-full px-3 py-2 border rounded-lg"/>
-                            <input type="url" placeholder="YouTube URL" value={video.videoUrl} onChange={(e) => updateVideoField(index, 'videoUrl', e.target.value)} className="w-full px-3 py-2 border rounded-lg"/>
-                            <textarea placeholder="Description (optional)" value={video.description} onChange={(e) => updateVideoField(index, 'description', e.target.value)} rows="2" className="w-full px-3 py-2 border rounded-lg"></textarea>
+                            <input type="text" placeholder="Video Title" value={video.title || ''} onChange={(e) => updateVideoField(index, 'title', e.target.value)} className="w-full px-3 py-2 border rounded-lg"/>
+                            <input type="url" placeholder="YouTube URL" value={video.videoUrl || ''} onChange={(e) => updateVideoField(index, 'videoUrl', e.target.value)} className="w-full px-3 py-2 border rounded-lg"/>
+                            <textarea placeholder="Description (optional)" value={video.description || ''} onChange={(e) => updateVideoField(index, 'description', e.target.value)} rows="2" className="w-full px-3 py-2 border rounded-lg"></textarea>
                         </div>
                     </div>
                 ))}
@@ -81,5 +87,4 @@ const EditVideoCarouselBlock = ({ section }) => {
         </div>
     );
 };
-
 export default EditVideoCarouselBlock;
