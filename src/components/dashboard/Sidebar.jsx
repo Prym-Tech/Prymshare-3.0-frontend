@@ -1,13 +1,19 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth.js';
-import Logo from '../../assets/images/logo-main.png';
+import { useAtom } from 'jotai';
+import { activePageAtom } from '../../state/pageAtoms.js';
+import Logo from '../../assets/images/new_logo.png';
 import {
-    HiOutlineHome, HiOutlinePencilAlt, HiOutlineChartBar, HiOutlineUsers,
-    HiOutlineCog, HiOutlineLogout
+    HiOutlineHome, HiOutlineChartBar, HiOutlineUsers, HiOutlineShoppingCart,
+    HiOutlineCog, HiOutlineLogout, HiChevronDown, HiPlus, HiOutlineColorSwatch
 } from 'react-icons/hi';
+import { Menu, Transition } from '@headlessui/react';
+import { Fragment } from 'react';
+import PageSwitcher from './PageSwitcher.jsx';
 
-const Sidebar = () => {
+const Sidebar = ({ pages, refetchPages }) => {
     const { user, logout } = useAuth();
+    const [activePage, setActivePage] = useAtom(activePageAtom);
     const navigate = useNavigate();
 
     const handleLogout = () => {
@@ -15,37 +21,48 @@ const Sidebar = () => {
         navigate('/login');
     };
 
+    const handlePageSwitch = (page) => {
+        setActivePage(page);
+    };
+
     const navItems = [
-        { to: "/me/appearance", icon: <HiOutlineHome className="h-6 w-6" />, text: "My Page" },
-        { to: "/me/analytics", icon: <HiOutlineChartBar className="h-6 w-6" />, text: "Analytics" },
-        { to: "/me/customers", icon: <HiOutlineUsers className="h-6 w-6" />, text: "Customers" },
+        { to: "/me/appearance", icon: <HiOutlineHome />, text: "Page" },
+        { to: "/me/store", icon: <HiOutlineShoppingCart />, text: "Store" },
+        { to: "/me/analytics", icon: <HiOutlineChartBar />, text: "Analytics" },
+        { to: "/me/customers", icon: <HiOutlineUsers />, text: "Customers" },
+    ];
+    
+    const proNavItems = [
+        { to: "/me/customize", icon: <HiOutlineColorSwatch />, text: "Customize" }
     ];
 
-    const NavItem = ({ to, icon, text }) => (
-        <NavLink
-            to={to}
-            className={({ isActive }) =>
-                `flex items-center space-x-3 rounded-lg px-3 py-2 transition-colors duration-200 ${
-                isActive
-                    ? 'bg-prym-green text-white shadow-sm'
-                    : 'text-gray-600 hover:bg-gray-200'
-                }`
-            }
-        >
-            {icon}
-            <span className="font-medium">{text}</span>
-        </NavLink>
-    );
+    const NavItem = ({ to, icon, text, isPro = false }) => {
+        const isProFeature = isPro && user?.user_type !== 'pro';
+        return (
+            <NavLink
+                to={isProFeature ? '#' : to}
+                title={isProFeature ? "Upgrade to Pro to use this feature" : ""}
+                className={({ isActive }) => `flex items-center justify-between rounded-lg px-3 py-2 transition-colors duration-200 ${ isProFeature ? 'text-gray-400 cursor-not-allowed' : isActive ? 'bg-prym-green text-white shadow-sm' : 'text-gray-600 hover:bg-gray-200' }`}
+            >
+                <div className="flex items-center space-x-3">
+                    {icon}
+                    <span className="font-medium">{text}</span>
+                </div>
+                {isProFeature && <span className="text-xs bg-prym-pink text-white font-bold px-2 py-0.5 rounded-full">PRO</span>}
+            </NavLink>
+        );
+    };
 
     return (
         <div className="w-64 bg-white border-r border-gray-200 flex flex-col p-4">
-            <div className="flex items-center space-x-2 p-2 mb-8">
-                <img src={Logo} alt="Prymshare" className="h-8 w-auto" />
-                <span className="font-bold text-lg text-prym-dark-green">prymshare</span>
+            {/* Page Switcher */}
+            <div className="mb-8">
+                <PageSwitcher pages={pages} />
             </div>
-            
             <nav className="flex-1 flex flex-col space-y-2">
                 {navItems.map(item => <NavItem key={item.to} {...item} />)}
+                <hr className="my-4" />
+                {proNavItems.map(item => <NavItem key={item.to} {...item} isPro={true} />)}
             </nav>
 
             <div className="mt-auto">
@@ -68,4 +85,3 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
-

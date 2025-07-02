@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { HiOutlineHome, HiOutlineChartBar, HiOutlineUsers, HiOutlinePlusCircle } from 'react-icons/hi';
+import { HiOutlineHome, HiOutlineChartBar, HiOutlineUsers, HiOutlinePlusCircle, HiOutlineShoppingCart } from 'react-icons/hi';
 
 const BottomNav = () => {
     const navItems = [
@@ -7,10 +7,12 @@ const BottomNav = () => {
         { to: "/me/analytics", icon: <HiOutlineChartBar className="h-6 w-6" />, text: "Analytics" },
         // This middle button can be used for a primary action, like "Add Block"
         // For now, it links to the main editor page.
-        { to: "/me/appearance", icon: <HiOutlinePlusCircle className="h-8 w-8 text-prym-pink -mt-2" />, text: "Add" },
+        // { to: "/me/appearance", icon: <HiOutlinePlusCircle className="h-8 w-8 text-prym-pink -mt-2" />, text: "Add" },
+        { to: "/me/store", icon: <HiOutlineShoppingCart />, text: "Store" },
         { to: "/me/customers", icon: <HiOutlineUsers className="h-6 w-6" />, text: "Customers" },
         // Add another link here, perhaps for settings or income
         { to: "/me/settings", icon: <HiOutlineUsers className="h-6 w-6" />, text: "Settings" },
+        
     ];
 
     const NavItem = ({ to, icon, text }) => (

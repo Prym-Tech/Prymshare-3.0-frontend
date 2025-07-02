@@ -8,12 +8,14 @@ import DraggableSection from './DraggableSection.jsx';
 import AddBlockModal from './AddBlockModal.jsx';
 import Spinner from '../ui/Spinner.jsx';
 import { updateSectionOrder } from '../../services/sectionService.js';
+import { updatePageDetails } from '../../services/pageService.js';
 import { toast } from 'react-hot-toast';
 import EditHeaderBlock from './editors/EditHeaderBlock.jsx';
 import EditLinkBlock from './editors/EditLinkBlock.jsx';
 import EditVideoCarouselBlock from './editors/EditVideoCarouselBlock.jsx';
 import EditImageCarouselBlock from './editors/EditImageCarouselBlock.jsx';
 import DashboardTabs from './DashboardTabs.jsx';
+// import ToggleSwitch from '../ui/ToggleSwitch.jsx';
 
 const PageEditor = () => {
     const { pages, loading: pagesLoading } = usePages();
@@ -29,6 +31,18 @@ const PageEditor = () => {
             setSections(pages[0].sections);
         }
     }, [pages, pagesLoading, activePage, setActivePage, setSections]);
+
+    const handleDisplayModeChange = async (mode) => {
+        const originalPage = activePage;
+        setActivePage(current => ({ ...current, display_mode: mode }));
+        try {
+            await updatePageDetails(activePage.id, { display_mode: mode });
+            toast.success(`Display mode updated.`);
+        } catch (error) {
+            toast.error("Failed to update setting.");
+            setActivePage(originalPage);
+        }
+    }
 
     const handleDragEnd = async (event) => {
         const { active, over } = event;
@@ -70,6 +84,12 @@ const PageEditor = () => {
     const headerSection = sections.find(s => s.section_type === 'header');
     const draggableSections = sections.filter(s => s.section_type !== 'header');
 
+    const displayOptions = [
+        { id: 'page_only', label: 'Page Only' },
+        { id: 'store_only', label: 'Store Only' },
+        { id: 'both', label: 'Both' },
+    ];
+
     return (
         <div className="bg-gray-50 p-4 sm:p-6 rounded-2xl">
             <DashboardTabs />
@@ -81,6 +101,21 @@ const PageEditor = () => {
                 <button className="bg-prym-green text-white font-bold py-2 px-6 rounded-lg shadow-md hover:bg-opacity-90 transition-colors w-full sm:w-auto">
                     Share
                 </button>
+            </div>
+
+            <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
+                <p className="font-semibold text-prym-dark-green mb-3">Page Display Options</p>
+                <div className="flex bg-gray-100 p-1 rounded-lg">
+                    {displayOptions.map(option => (
+                        <button 
+                            key={option.id}
+                            onClick={() => handleDisplayModeChange(option.id)}
+                            className={`w-1/3 rounded-md py-2 text-sm font-semibold transition-all ${activePage.display_mode === option.id ? 'bg-white shadow text-prym-pink' : 'text-gray-600 hover:bg-white/50'}`}
+                        >
+                            {option.label}
+                        </button>
+                    ))}
+                </div>
             </div>
             
             <div className="space-y-4">

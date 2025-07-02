@@ -5,6 +5,7 @@ import MainLayout from './components/layouts/MainLayout.jsx';
 import AuthLayout from './components/layouts/AuthLayout.jsx';
 import PrivateRoute from './components/auth/PrivateRoute.jsx';
 import PublicRoute from './components/auth/PublicRoute.jsx';
+import ProRoute from './components/auth/ProRoute.jsx';
 import DashboardLayout from './components/layouts/DashboardLayout.jsx';
 
 // Import Pages
@@ -16,6 +17,7 @@ import ResetPasswordConfirmPage from './pages/ResetPasswordConfirmPage.jsx';
 import ActivateAccountPage from './pages/ActivateAccountPage.jsx';
 import OnboardingPage from './pages/OnboardingPage.jsx';
 import CustomizePage from './pages/CustomizePage.jsx';
+import StorePage from './pages/StorePage.jsx';
 
 import PageEditor from './components/dashboard/PageEditor.jsx';
 import Spinner from './components/ui/Spinner.jsx';
@@ -54,8 +56,11 @@ function App() {
       <Route element={<PrivateRoute />}>
         <Route path="/onboarding" element={<OnboardingPage />} />
         <Route element={<DashboardLayout />}>
-            <Route path="/me/appearance" element={<PageEditor />} />
-            <Route path="/me/customize" element={<CustomizePage />} /> 
+            <Route path="/me/appearance" element={<PageEditor />} /> 
+            <Route path="/me/store" element={<StorePage />} />
+            <Route element={<ProRoute />}>
+                <Route path="/me/customize" element={<CustomizePage />} />
+            </Route>
         </Route>
       </Route>
     </Routes>

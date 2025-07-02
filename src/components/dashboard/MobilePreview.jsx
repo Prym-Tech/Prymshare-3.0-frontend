@@ -1,5 +1,7 @@
+import { useState, useEffect } from 'react';
 import { useAtomValue } from 'jotai';
 import { pageSectionsAtom, activePageAtom, pageThemeAtom } from '../../state/pageAtoms.js';
+import { useProducts } from '../../hooks/useProducts.js';
 import { templates } from '../../lib/templates.js';
 import { FaTwitter, FaInstagram, FaFacebook, FaLinkedin, FaTiktok, FaYoutube } from 'react-icons/fa';
 // Import Swiper React components
@@ -13,10 +15,19 @@ import 'swiper/css/pagination';
 const MobilePreview = () => {
     const sections = useAtomValue(pageSectionsAtom);
     const activePage = useAtomValue(activePageAtom);
+    const [activePreviewTab, setActivePreviewTab] = useState('page');
+    const { products, loading: productsLoading } = useProducts();
     // const theme = useAtomValue(pageThemeAtom);
 
     const theme = activePage ? { ...templates.default.styles, ...(templates[activePage.theme_settings.template]?.styles || {}), ...activePage.theme_settings } : templates.default.styles;
 
+    useEffect(() => {
+        if (activePage?.display_mode === 'store_only') {
+            setActivePreviewTab('store');
+        } else {
+            setActivePreviewTab('page');
+        }
+    }, [activePage?.display_mode]);
 
     const getYoutubeEmbedUrl = (url) => {
         if (!url) return null;
@@ -159,6 +170,22 @@ const MobilePreview = () => {
                 return <div className="p-2"><div className="w-full h-16 bg-gray-200 border-2 border-dashed rounded-lg flex items-center justify-center text-sm text-gray-400 capitalize">{section.section_type} Preview</div></div>;
         }
     };
+
+    const StorePreview = () => (
+        <div className="p-2 grid grid-cols-2 gap-2">
+            {products.map(product => (
+                <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div className="w-full aspect-square bg-gray-200">
+                        {product.image && <img src={product.image} alt={product.name} className="w-full h-full object-cover"/>}
+                    </div>
+                    <div className="p-2">
+                        <p className="font-semibold text-xs truncate" style={{color: theme.textColor}}>{product.name}</p>
+                        <p className="text-xs" style={{color: theme.textColor}}>${product.price}</p>
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
     
     const headerSection = sections.find(s => s.section_type === 'header');
 
@@ -195,9 +222,38 @@ const MobilePreview = () => {
             <div className="w-full h-full rounded-[22px] overflow-y-auto" style={pageStyle}>
                 {headerSection && renderHeader(headerSection)}
                 
-                {sections.filter(s => s.section_type !== 'header').map(section => (
+                {/* {sections.filter(s => s.section_type !== 'header').map(section => (
                     <div key={section.id}>{renderSectionPreview(section)}</div>
-                ))}
+                ))} */}
+
+                {activePage?.display_mode === 'both' && (
+                    <div className="sticky top-0 z-10 p-2" style={{backgroundColor: theme.linkColor}}>
+                        <div className="flex w-full bg-gray-500/10 p-1 rounded-lg">
+                            <button 
+                                onClick={() => setActivePreviewTab('page')} 
+                                className={`w-1/2 rounded-md py-1 text-sm font-semibold transition-colors ${activePreviewTab === 'page' ? 'bg-white shadow' : 'text-gray-500'}`} 
+                                style={{color: activePreviewTab === 'page' ? theme.linkTextColor : ''}}>
+                                Page
+                            </button>
+                            <button 
+                                onClick={() => setActivePreviewTab('store')} 
+                                className={`w-1/2 rounded-md py-1 text-sm font-semibold transition-colors ${activePreviewTab === 'store' ? 'bg-white shadow' : 'text-gray-500'}`} 
+                                style={{color: activePreviewTab === 'store' ? theme.linkTextColor : ''}}>
+                                Store
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {activePreviewTab === 'page' && activePage?.display_mode !== 'store_only' && (
+                    sections.filter(s => s.section_type !== 'header').map(section => (
+                        <div key={section.id}>{renderSectionPreview(section)}</div>
+                    ))
+                )}
+                
+                {activePreviewTab === 'store' && activePage?.display_mode !== 'page_only' && (
+                    <StorePreview />
+                )}
             </div>
         </div>
     );
