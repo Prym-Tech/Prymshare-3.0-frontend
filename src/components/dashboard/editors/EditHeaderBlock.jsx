@@ -8,6 +8,9 @@ import { toast } from 'react-hot-toast';
 import { FaTwitter, FaInstagram, FaFacebook, FaLinkedin, FaTiktok, FaYoutube } from 'react-icons/fa';
 import { HiOutlineArrowLeft, HiOutlineUserCircle, HiOutlineNewspaper, HiOutlinePhotograph, HiOutlineChatAlt } from 'react-icons/hi';
 import ImageUploader from '../../ui/ImageUploader.jsx';
+// --- CHANGE START ---
+import { uploadImage } from '../../../services/imageService.js'; // Import the upload service
+// --- CHANGE END ---
 
 const headerStyles = [
     { id: 'photo_top', name: 'Photo Top', icon: <HiOutlineUserCircle/> },
@@ -18,14 +21,16 @@ const headerStyles = [
 
 const EditHeaderBlock = ({ section }) => {
     const [activePage, setActivePage] = useAtom(activePageAtom);
-    const [sections, setSections] = useAtom(pageSectionsAtom);
+    const setSections = useSetAtom(pageSectionsAtom);
     const setEditingSectionId = useSetAtom(editingSectionIdAtom);
     const [draft, setDraft] = useState({ brand_name: activePage.brand_name, title: activePage.title, ...section.content });
+    // --- CHANGE START ---
+    const [imageLoading, setImageLoading] = useState({ profile: false, banner: false });
+    // --- CHANGE END ---
     const debouncedDraft = useDebounce(draft, 1000);
 
     useEffect(() => {
         const saveChanges = async () => {
-            // Only save if there's an actual change.
             const pageDetailsChanged = debouncedDraft.brand_name !== activePage.brand_name || debouncedDraft.title !== activePage.title;
             const sectionContentChanged = JSON.stringify(debouncedDraft) !== JSON.stringify({ brand_name: activePage.brand_name, title: activePage.title, ...section.content });
 
@@ -47,15 +52,37 @@ const EditHeaderBlock = ({ section }) => {
             }
         };
         if (debouncedDraft && activePage && section) {
-             // A simple check to prevent saving on initial component mount
             if (JSON.stringify(debouncedDraft) !== JSON.stringify({ brand_name: activePage.brand_name, title: activePage.title, ...section.content })) {
                 saveChanges();
             }
         }
-    }, [debouncedDraft]);
+    }, [debouncedDraft, activePage, section, setActivePage, setSections]);
 
     const handleChange = (e) => setDraft(d => ({ ...d, [e.target.name]: e.target.value }));
-    const handleImageChange = (name, url) => setDraft(d => ({ ...d, [name]: url }));
+
+    // --- CHANGE START ---
+    // This function now handles the file upload process.
+    const handleImageChange = async (name, file) => {
+        if (!file) {
+            setDraft(d => ({ ...d, [name]: null }));
+            return;
+        }
+
+        const loadingKey = name === 'profileImageUrl' ? 'profile' : 'banner';
+        setImageLoading(loading => ({ ...loading, [loadingKey]: true }));
+        
+        try {
+            const imageUrl = await uploadImage(file);
+            setDraft(d => ({ ...d, [name]: imageUrl }));
+            toast.success("Image updated!");
+        } catch (error) {
+            toast.error("Image upload failed.");
+        } finally {
+            setImageLoading(loading => ({ ...loading, [loadingKey]: false }));
+        }
+    };
+    // --- CHANGE END ---
+
     const handleSocialChange = (e) => setDraft(d => ({ ...d, social_links: { ...d.social_links, [e.target.name]: e.target.value }}));
 
     const socialFields = [
@@ -90,17 +117,23 @@ const EditHeaderBlock = ({ section }) => {
                 <div className="flex items-center gap-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Profile Picture</label>
+                        {/* --- CHANGE START --- */}
                         <ImageUploader 
                             existingImageUrl={draft.profileImageUrl}
-                            onImageChange={(url) => handleImageChange('profileImageUrl', url)}
+                            onImageChange={(file) => handleImageChange('profileImageUrl', file)}
+                            isLoading={imageLoading.profile}
                         />
+                        {/* --- CHANGE END --- */}
                     </div>
                      <div className="flex-1">
                         <label className="block text-sm font-medium text-gray-700 mb-1">Banner Image</label>
+                        {/* --- CHANGE START --- */}
                         <ImageUploader 
                             existingImageUrl={draft.bannerImageUrl}
-                            onImageChange={(url) => handleImageChange('bannerImageUrl', url)}
+                            onImageChange={(file) => handleImageChange('bannerImageUrl', file)}
+                            isLoading={imageLoading.banner}
                         />
+                        {/* --- CHANGE END --- */}
                     </div>
                 </div>
 
@@ -108,7 +141,7 @@ const EditHeaderBlock = ({ section }) => {
                 <div><label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">Title (e.g., Business Coach)</label><input type="text" name="title" id="title" value={draft.title} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg"/></div>
                 <div><label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">Short Description</label><textarea name="description" id="description" value={draft.description} onChange={handleChange} rows="3" className="w-full px-3 py-2 border border-gray-300 rounded-lg"></textarea></div>
                 
-                <div><label className="block text-sm font-medium text-gray-700 mb-2">Social Links</label><div className="space-y-3">{socialFields.map(field => ( <div key={field.name} className="relative"><div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">{field.icon}</div><input type="text" name={field.name} placeholder={`your-${field.name}-username`} value={draft.social_links[field.name] || ''} onChange={handleSocialChange} className="w-full pl-10 pr-3 py-2 border rounded-lg"/></div> ))}</div></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-2">Social Links</label><div className="space-y-3">{socialFields.map(field => ( <div key={field.name} className="relative"><div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">{field.icon}</div><input type="text" name={field.name} placeholder={`your-${field.name}-username`} value={draft.social_links?.[field.name] || ''} onChange={handleSocialChange} className="w-full pl-10 pr-3 py-2 border rounded-lg"/></div> ))}</div></div>
             </div>
         </div>
     );

@@ -1,16 +1,22 @@
 import { useState } from 'react';
-import { useSetAtom, useAtomValue, useAtom } from 'jotai';
+import { useSetAtom, useAtomValue } from 'jotai';
 import { pageSectionsAtom, editingSectionIdAtom, activePageAtom } from '../../../state/pageAtoms.js';
 import { HiOutlineArrowLeft, HiOutlineTrash } from 'react-icons/hi';
 import { updateSection } from '../../../services/sectionService.js';
 import { toast } from 'react-hot-toast';
 import ImageUploader from '../../ui/ImageUploader.jsx';
+// --- CHANGE START ---
+import { uploadImage } from '../../../services/imageService.js';
+// --- CHANGE END ---
 
 const EditLinkBlock = ({ section }) => {
     const setEditingSectionId = useSetAtom(editingSectionIdAtom);
-    const [sections, setSections] = useAtom(pageSectionsAtom);
+    const setSections = useSetAtom(pageSectionsAtom);
     const activePage = useAtomValue(activePageAtom);
     const [draftContent, setDraftContent] = useState(section.content);
+    // --- CHANGE START ---
+    const [imageLoading, setImageLoading] = useState({});
+    // --- CHANGE END ---
 
     const updateLinkField = (linkIndex, field, value) => {
         setDraftContent(currentDraft => {
@@ -20,9 +26,25 @@ const EditLinkBlock = ({ section }) => {
         });
     };
 
-    const handleImageChange = (linkIndex, permanentUrl) => {
-        updateLinkField(linkIndex, 'imageUrl', permanentUrl);
+    // --- CHANGE START ---
+    const handleImageChange = async (linkIndex, file) => {
+        if (!file) {
+            updateLinkField(linkIndex, 'imageUrl', null);
+            return;
+        }
+
+        setImageLoading(loading => ({ ...loading, [linkIndex]: true }));
+        try {
+            const permanentUrl = await uploadImage(file);
+            updateLinkField(linkIndex, 'imageUrl', permanentUrl);
+            toast.success("Image updated!");
+        } catch (error) {
+            toast.error("Image upload failed.");
+        } finally {
+            setImageLoading(loading => ({ ...loading, [linkIndex]: false }));
+        }
     };
+    // --- CHANGE END ---
 
     const addLink = () => {
         setDraftContent(currentDraft => {
@@ -68,10 +90,13 @@ const EditLinkBlock = ({ section }) => {
                             <button onClick={() => removeLink(index)} className="text-gray-400 hover:text-red-500"><HiOutlineTrash className="h-5 w-5"/></button>
                         </div>
                         <div className="flex items-start gap-4">
+                            {/* --- CHANGE START --- */}
                             <ImageUploader 
                                 existingImageUrl={link.imageUrl}
-                                onImageChange={(permanentUrl) => handleImageChange(index, permanentUrl)}
+                                onImageChange={(file) => handleImageChange(index, file)}
+                                isLoading={imageLoading[index]}
                             />
+                            {/* --- CHANGE END --- */}
                             <div className="flex-1 space-y-3">
                                 <input type="text" placeholder="Title" value={link.title || ''} onChange={(e) => updateLinkField(index, 'title', e.target.value)} className="w-full px-3 py-2 border rounded-lg"/>
                                 <input type="url" placeholder="https://example.com" value={link.url || ''} onChange={(e) => updateLinkField(index, 'url', e.target.value)} className="w-full px-3 py-2 border rounded-lg"/>

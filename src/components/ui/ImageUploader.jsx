@@ -1,34 +1,22 @@
 import { useCallback, useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { uploadImage } from '../../services/imageService.js';
 import { HiOutlineUpload, HiOutlineX } from 'react-icons/hi';
 import Spinner from './Spinner.jsx';
-import { toast } from 'react-hot-toast';
 
-const ImageUploader = ({ existingImageUrl, onImageChange }) => {
+// --- CHANGE START ---
+// The component now accepts an `isLoading` prop to show a spinner
+// controlled by the parent component during the upload process.
+const ImageUploader = ({ existingImageUrl, onImageChange, isLoading }) => {
+// --- CHANGE END ---
     const [preview, setPreview] = useState(existingImageUrl);
-    const [loading, setLoading] = useState(false);
 
     const onDrop = useCallback(acceptedFiles => {
         const file = acceptedFiles[0];
         if (file) {
-            handleUpload(file);
+            setPreview(URL.createObjectURL(file));
+            onImageChange(file);
         }
-    }, []);
-
-    const handleUpload = async (file) => {
-        setLoading(true);
-        try {
-            const imageUrl = await uploadImage(file);
-            setPreview(imageUrl);
-            onImageChange(imageUrl); // Pass the permanent URL up
-            toast.success("Image uploaded!");
-        } catch (error) {
-            toast.error("Image upload failed.");
-        } finally {
-            setLoading(false);
-        }
-    };
+    }, [onImageChange]);
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
@@ -52,7 +40,10 @@ const ImageUploader = ({ existingImageUrl, onImageChange }) => {
             ${isDragActive ? 'border-prym-pink bg-prym-pink/10' : 'border-gray-300 hover:border-prym-green'}`}>
             <input {...getInputProps()} />
             
-            {loading ? <Spinner /> : preview ? (
+            {/* --- CHANGE START --- */}
+            {/* The spinner is now controlled by the isLoading prop from the parent. */}
+            {isLoading ? <Spinner /> : preview ? (
+            // --- CHANGE END ---
                 <div className="relative w-full h-full">
                     <img src={preview} alt="Preview" className="w-full h-full object-cover rounded-md" />
                     <button onClick={removeImage} className="absolute -top-1 -right-1 bg-white rounded-full p-0.5 shadow"><HiOutlineX className="h-3 w-3 text-red-500" /></button>
