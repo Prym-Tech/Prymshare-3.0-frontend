@@ -5,10 +5,12 @@ import { toast } from 'react-hot-toast';
 import apiClient from '../lib/api.js';
 import Spinner from '../components/ui/Spinner.jsx';
 import { useAuth } from '../hooks/useAuth.js';
+import { usePages } from '../hooks/usePages.js'; 
 
 const OnboardingPage = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
+    const { refetchPages } = usePages();
     const { register, handleSubmit, formState: { errors } } = useForm();
     const [loading, setLoading] = useState(false);
 
@@ -17,6 +19,7 @@ const OnboardingPage = () => {
         try {
             await apiClient.post('/pages/', { brand_name: data.brand_name });
             toast.success('Your page has been created!');
+            await refetchPages();
             navigate('/me/appearance');
         } catch (error) {
             // --- FIX: Improved error message logic ---

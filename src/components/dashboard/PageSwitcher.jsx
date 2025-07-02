@@ -16,8 +16,19 @@ const PageSwitcher = ({ pages, isMobile = false }) => {
         setActivePage(page);
     };
 
+    // const handleCreateNewPage = () => {
+    //     if (user?.user_type === 'pro' || pages.length === 0) {
+    //         setActivePage(null);
+    //         navigate('/onboarding');
+    //     } else {
+    //         toast.error("Upgrade to Pro to create more pages.");
+    //     }
+    // };
+
     const handleCreateNewPage = () => {
-        if (user?.user_type === 'pro' || pages.length === 0) {
+        if (user?.user_type === 'pro' && pages.length === 2) {
+            toast.error("Upgrade to the upcoming advanced plans to create more pages!");
+        } else if (user?.user_type === 'pro' || pages.length === 0) {
             setActivePage(null);
             navigate('/onboarding');
         } else {

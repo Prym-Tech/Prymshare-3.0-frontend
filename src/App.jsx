@@ -56,11 +56,9 @@ function App() {
       <Route element={<PrivateRoute />}>
         <Route path="/onboarding" element={<OnboardingPage />} />
         <Route element={<DashboardLayout />}>
-            <Route path="/me/appearance" element={<PageEditor />} /> 
+            <Route path="/me/appearance" element={<PageEditor />} />
+            <Route path="/me/customize" element={<CustomizePage />} /> 
             <Route path="/me/store" element={<StorePage />} />
-            <Route element={<ProRoute />}>
-                <Route path="/me/customize" element={<CustomizePage />} />
-            </Route>
         </Route>
       </Route>
     </Routes>
