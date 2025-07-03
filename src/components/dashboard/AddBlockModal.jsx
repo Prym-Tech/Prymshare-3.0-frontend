@@ -3,6 +3,7 @@ import { pageSectionsAtom, activePageAtom, editingSectionIdAtom } from '../../st
 import Modal from '../ui/Modal.jsx';
 import { toast } from 'react-hot-toast';
 import { createSection } from '../../services/sectionService.js';
+import { useNavigate } from 'react-router-dom';
 
 // Custom, two-tone SVG Icons for a professional look
 const ICONS = {
@@ -62,10 +63,18 @@ const AddBlockModal = ({ isOpen, onClose }) => {
     const setSections = useSetAtom(pageSectionsAtom);
     const activePage = useAtomValue(activePageAtom);
     const setEditingSectionId = useSetAtom(editingSectionIdAtom);
+    const navigate = useNavigate();
 
     const handleAddBlock = async (blockType) => {
         if (!activePage) {
             toast.error("No active page selected.");
+            return;
+        }
+        const monetizationBlocks = ['digital_product', 'courses', 'appointments', 'subscriptions', 'paywall', 'events'];
+        if (monetizationBlocks.includes(blockType) && !activePage.subaccount_code) {
+            toast.error("Please set up your payment details first to add this block.");
+            navigate('/me/payments');
+            onClose();
             return;
         }
         const newBlockData = {

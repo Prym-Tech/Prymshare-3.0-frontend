@@ -18,6 +18,7 @@ import ActivateAccountPage from './pages/ActivateAccountPage.jsx';
 import OnboardingPage from './pages/OnboardingPage.jsx';
 import CustomizePage from './pages/CustomizePage.jsx';
 import StorePage from './pages/StorePage.jsx';
+import PaymentSettingsPage from './pages/PaymentSettingsPage.jsx';
 
 import PageEditor from './components/dashboard/PageEditor.jsx';
 import Spinner from './components/ui/Spinner.jsx';
@@ -59,6 +60,7 @@ function App() {
             <Route path="/me/appearance" element={<PageEditor />} />
             <Route path="/me/customize" element={<CustomizePage />} /> 
             <Route path="/me/store" element={<StorePage />} />
+            <Route path="/me/payments" element={<PaymentSettingsPage />} />
         </Route>
       </Route>
     </Routes>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAtom, useAtomValue } from 'jotai';
+import { useAtom, useSetAtom } from 'jotai';
 import { DndContext, closestCenter } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import { pageSectionsAtom, activePageAtom, editingSectionIdAtom } from '../../state/pageAtoms.js';
@@ -7,7 +7,10 @@ import { usePages } from '../../hooks/usePages.js';
 import DraggableSection from './DraggableSection.jsx';
 import AddBlockModal from './AddBlockModal.jsx';
 import Spinner from '../ui/Spinner.jsx';
-import { updateSectionOrder } from '../../services/sectionService.js';
+// --- CHANGE START ---
+import { updateSectionOrder, deleteSection } from '../../services/sectionService.js';
+import ConfirmDeleteModal from '../ui/ConfirmDeleteModal.jsx';
+// --- CHANGE END ---
 import { updatePageDetails } from '../../services/pageService.js';
 import { toast } from 'react-hot-toast';
 import EditHeaderBlock from './editors/EditHeaderBlock.jsx';
@@ -15,7 +18,6 @@ import EditLinkBlock from './editors/EditLinkBlock.jsx';
 import EditVideoCarouselBlock from './editors/EditVideoCarouselBlock.jsx';
 import EditImageCarouselBlock from './editors/EditImageCarouselBlock.jsx';
 import DashboardTabs from './DashboardTabs.jsx';
-// import ToggleSwitch from '../ui/ToggleSwitch.jsx';
 
 const PageEditor = () => {
     const { pages, loading: pagesLoading } = usePages();
@@ -23,6 +25,10 @@ const PageEditor = () => {
     const [sections, setSections] = useAtom(pageSectionsAtom);
     const [editingSectionId, setEditingSectionId] = useAtom(editingSectionIdAtom);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    // --- CHANGE START ---
+    const [deletingSectionId, setDeletingSectionId] = useState(null);
+    const [isDeleteLoading, setIsDeleteLoading] = useState(false);
+    // --- CHANGE END ---
     const editingSection = editingSectionId ? sections.find(s => s.id === editingSectionId) : null;
 
     useEffect(() => {
@@ -66,6 +72,24 @@ const PageEditor = () => {
             }
         }
     };
+
+    // --- CHANGE START ---
+    const handleConfirmDelete = async () => {
+        if (!deletingSectionId) return;
+
+        setIsDeleteLoading(true);
+        try {
+            await deleteSection(activePage.id, deletingSectionId);
+            setSections(prev => prev.filter(s => s.id !== deletingSectionId));
+            toast.success("Block deleted!");
+        } catch (error) {
+            toast.error("Failed to delete block.");
+        } finally {
+            setIsDeleteLoading(false);
+            setDeletingSectionId(null);
+        }
+    };
+    // --- CHANGE END ---
 
     if (!activePage) {
         return <div className="flex justify-center items-center h-full"><Spinner /> <span className="ml-2">Loading...</span></div>;
@@ -123,7 +147,13 @@ const PageEditor = () => {
                 <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                     <SortableContext items={draggableSections.map(s => s.id)} strategy={verticalListSortingStrategy}>
                         {draggableSections.map(section => (
-                           <DraggableSection key={section.id} section={section} />
+                           <DraggableSection 
+                                key={section.id} 
+                                section={section} 
+                                // --- CHANGE START ---
+                                onDeleteClick={setDeletingSectionId} 
+                                // --- CHANGE END ---
+                           />
                         ))}
                     </SortableContext>
                 </DndContext>
@@ -139,6 +169,17 @@ const PageEditor = () => {
             </div>
 
             <AddBlockModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+            
+            {/* --- CHANGE START --- */}
+            <ConfirmDeleteModal
+                isOpen={deletingSectionId !== null}
+                onClose={() => setDeletingSectionId(null)}
+                onConfirm={handleConfirmDelete}
+                loading={isDeleteLoading}
+                title="Delete Block"
+                message="Are you sure you want to delete this block? This action cannot be undone."
+            />
+            {/* --- CHANGE END --- */}
         </div>
     );
 };

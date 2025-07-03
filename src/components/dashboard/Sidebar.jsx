@@ -4,7 +4,7 @@ import { useAtom } from 'jotai';
 import { activePageAtom } from '../../state/pageAtoms.js';
 import Logo from '../../assets/images/new_logo.png';
 import {
-    HiOutlineHome, HiOutlineChartBar, HiOutlineUsers, HiOutlineShoppingCart,
+    HiOutlineHome, HiOutlineChartBar, HiOutlineUsers, HiOutlineShoppingCart, HiOutlineCreditCard,
     HiOutlineCog, HiOutlineLogout, HiChevronDown, HiPlus, HiOutlineColorSwatch
 } from 'react-icons/hi';
 import { Menu, Transition } from '@headlessui/react';
@@ -30,6 +30,7 @@ const Sidebar = ({ pages, refetchPages }) => {
         { to: "/me/store", icon: <HiOutlineShoppingCart />, text: "Store" },
         { to: "/me/analytics", icon: <HiOutlineChartBar />, text: "Analytics" },
         { to: "/me/customers", icon: <HiOutlineUsers />, text: "Customers" },
+        { to: "/me/payments", icon: <HiOutlineCreditCard />, text: "Payments" },
     ];
     
     const proNavItems = [
