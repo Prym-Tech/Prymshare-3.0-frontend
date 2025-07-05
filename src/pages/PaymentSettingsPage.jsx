@@ -36,6 +36,7 @@ const PaymentSettingsPage = () => {
 
     // Set form values when the active page loads
     useEffect(() => {
+        // console.log(activePage)
         if (activePage) {
             setValue('bank_code', activePage.bank_code);
             setValue('account_number', activePage.account_number);

@@ -10,6 +10,24 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
+
+const generateTimeSlots = (start, end, duration) => {
+    const slots = [];
+    if (!start || !end || !duration) return slots;
+    
+    let currentTime = new Date(`1970-01-01T${start}:00`);
+    const endTime = new Date(`1970-01-01T${end}:00`);
+    const durationMinutes = parseInt(duration, 10);
+
+    if (isNaN(durationMinutes) || durationMinutes <= 0) return slots;
+
+    while (currentTime < endTime) {
+        slots.push(currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }));
+        currentTime.setMinutes(currentTime.getMinutes() + durationMinutes);
+    }
+    return slots;
+};
+
 const MobilePreview = () => {
     const sections = useAtomValue(pageSectionsAtom);
     const activePage = useAtomValue(activePageAtom);
@@ -17,6 +35,9 @@ const MobilePreview = () => {
     const { products } = useProducts(activePage?.id);
 
     const theme = activePage ? { ...templates.default.styles, ...(templates[activePage.theme_settings.template]?.styles || {}), ...activePage.theme_settings } : templates.default.styles;
+
+    const [selectedDate, setSelectedDate] = useState(new Date());
+    const [selectedTime, setSelectedTime] = useState(null);
 
     useEffect(() => {
         if (activePage?.display_mode === 'store_only') {
@@ -75,17 +96,58 @@ const MobilePreview = () => {
         );
 
         switch(style) {
-            case 'banner_only': return <div className="relative text-white text-center"><BannerImage /><div className="absolute inset-0 bg-black/50 flex flex-col justify-center items-center p-4"><h1 className="font-bold text-lg">{activePage?.brand_name}</h1><p className="text-sm">{activePage?.title}</p></div></div>
-            case 'photo_banner': return <div style={{backgroundColor: theme.blockBgColor}} className="rounded-xl shadow-sm overflow-hidden"><div className="relative"><BannerImage/><div className="absolute -bottom-12 left-1/2 -translate-x-1/2 border-4 border-white rounded-full"><ProfileImage/></div></div><div className="pt-14"><ProfileInfo/></div></div>
-            case 'minimal': return <div style={{backgroundColor: theme.blockBgColor}} className="rounded-xl shadow-sm p-4"><ProfileInfo/></div>
-            case 'photo_top': default: return <div style={{backgroundColor: theme.blockBgColor}} className="rounded-xl shadow-sm pt-6 flex flex-col items-center"><ProfileImage/><ProfileInfo/></div>
+            case 'banner_overlay': 
+                return (
+                    <div className="relative text-white text-center rounded-2xl overflow-hidden shadow-lg">
+                        <BannerImage />
+                        <div className="absolute inset-0 bg-black/60 flex flex-col justify-center items-center p-4">
+                            <ProfileImage sizeClass="w-28 h-28" />
+                            <h1 className="font-bold text-2xl mt-2">{activePage?.brand_name}</h1>
+                        </div>
+                    </div>
+                );
+            case 'banner_above': 
+                return (
+                    <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg" style={{backgroundColor: theme.blockBgColor}}>
+                        <BannerImage />
+                        <ProfileInfo />
+                    </div>
+                );
+            case 'card_left_image':
+                return (
+                    <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-4 flex items-center gap-4" style={{backgroundColor: theme.blockBgColor}}>
+                         <div className="flex-shrink-0"><ProfileImage sizeClass="w-20 h-20" /></div>
+                         <div className="flex-grow">
+                             <h1 className="font-bold text-xl">{activePage?.brand_name}</h1>
+                             {hasSocials && (
+                                <div className="flex items-center space-x-4 mt-2 text-gray-400">
+                                    {Object.entries(social_links).map(([key, value]) => value && <a key={key} href={`https://www.${key}.com/${value}`} target="_blank" rel="noopener noreferrer" className="hover:text-prym-pink text-lg">{socialIcons[key]}</a>)}
+                                </div>
+                             )}
+                         </div>
+                    </div>
+                );
+            case 'side_by_side_center': 
+            default: 
+                return (
+                    <div className="flex flex-col items-center text-center">
+                        <ProfileImage sizeClass="w-28 h-28" />
+                        <ProfileInfo/>
+                    </div>
+                );
         }
+
     };
 
     const renderSectionPreview = (section) => {
+        const content = section.content || {};
         const blockStyle = theme.template === 'shadow' ? { backgroundColor: theme.blockBgColor, border: '1px solid #E5E7EB' } : { backgroundColor: theme.blockBgColor };
         const linkStyle = { backgroundColor: theme.linkColor, color: theme.linkTextColor };
         const shadowLinkStyle = { ...linkStyle, boxShadow: `4px 4px 0px ${theme.buttonShadowColor}` };
+        const actionButtonStyle = { backgroundColor: theme.actionButtonColor, color: theme.actionButtonTextColor };
+
+        const isEventType = section.section_type === 'events';
+
         switch (section.section_type) {
             case 'links':
                 return (
@@ -163,6 +225,146 @@ const MobilePreview = () => {
                         </div>
                     </div>
                  );
+            case 'digital_product':
+                return (
+                    <div className="p-2">
+                        <div className="block p-3 rounded-lg shadow-md" style={linkStyle}>
+                            <div className="flex gap-4">
+                                <div className="w-16 h-16 bg-gray-200 rounded-md flex-shrink-0">
+                                    {section.content.cover_image_url && <img src={section.content.cover_image_url} alt={section.content.title} className="w-full h-full object-cover rounded-md" />}
+                                </div>
+                                <div className="flex-grow">
+                                    <h4 className="font-bold text-sm">{section.content.title || 'Digital Product'}</h4>
+                                    <p className="text-xs opacity-80 line-clamp-2">{section.content.description || 'Your product description goes here.'}</p>
+                                </div>
+                            </div>
+                            <button className="w-full mt-3 py-2 rounded-md text-sm font-bold" style={actionButtonStyle}>
+                                {parseFloat(section.content.price) > 0 ? `Buy for ₦${section.content.price}` : 'Download for Free'}
+                            </button>
+                        </div>
+                    </div>
+                );
+            case 'appointments':
+                const availability = content.availability || {};
+                const availableDays = Object.keys(availability).filter(day => availability[day].active);
+                const today = new Date();
+                const nextThreeDays = Array.from({ length: 4 }, (_, i) => {
+                    const date = new Date(today);
+                    date.setDate(today.getDate() + i);
+                    return date;
+                }).filter(date => availableDays.includes(date.toLocaleDateString('en-US', { weekday: 'long' })));
+
+                const selectedDayName = selectedDate.toLocaleDateString('en-US', { weekday: 'long' });
+                const timeSlots = availability[selectedDayName]?.active 
+                    ? generateTimeSlots(availability[selectedDayName].start, availability[selectedDayName].end, content.duration || 30)
+                    : [];
+
+                return (
+                    <div className="p-2">
+                        <div className="block p-4 rounded-lg shadow-md" style={linkStyle}>
+                            {content.cover_image_url && (
+                                <div className="w-full h-24 bg-gray-200 rounded-md mb-3">
+                                    <img src={content.cover_image_url} alt={content.title} className="w-full h-full object-cover rounded-md" />
+                                </div>
+                            )}
+
+                            <h4 className="font-bold text-lg">{content.title || 'Book a 1-on-1 Session'}</h4>
+                            <p className="text-sm opacity-80 mt-1">{content.description || 'Choose a date and time that works for you.'}</p>
+                            
+                            <div className="mt-4">
+                                <p className="font-semibold text-sm mb-2">Available dates</p>
+                                <div className="grid grid-cols-4 gap-2">
+                                    {nextThreeDays.map(date => (
+                                        <button 
+                                            key={date.toISOString()}
+                                            onClick={() => { setSelectedDate(date); setSelectedTime(null); }}
+                                            className={`p-2 rounded-lg border-2 text-center ${selectedDate.toDateString() === date.toDateString() ? 'border-prym-pink bg-prym-pink/10' : 'border-gray-200'}`}
+                                        >
+                                            <p className="text-xs font-bold">{date.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()}</p>
+                                            <p className="text-lg font-bold">{date.getDate()}</p>
+                                            <p className="text-xs">{date.toLocaleDateString('en-US', { month: 'short' }).toUpperCase()}</p>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="mt-4">
+                                <p className="font-semibold text-sm mb-2">Available openings</p>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {timeSlots.map(slot => (
+                                        <button 
+                                            key={slot}
+                                            onClick={() => setSelectedTime(slot)}
+                                            className={`p-2 rounded-lg border-2 text-center text-xs font-semibold ${selectedTime === slot ? 'border-prym-pink bg-prym-pink/10' : 'border-gray-200'}`}
+                                        >
+                                            {slot}
+                                        </button>
+                                    ))}
+                                    {timeSlots.length === 0 && <p className="col-span-3 text-xs text-center text-gray-500">No openings for this day.</p>}
+                                </div>
+                            </div>
+                            
+                            <button className="w-full mt-4 py-3 rounded-lg text-sm font-bold disabled:opacity-50" style={actionButtonStyle} disabled={!selectedTime}>
+                                {parseFloat(content.price) > 0 ? `Book for ₦${content.price}` : 'Book Session'}
+                            </button>
+                        </div>
+                    </div>
+                );
+            case 'paywall':
+                return (
+                    <div className="p-2">
+                        <div className="block p-3 rounded-lg shadow-md" style={linkStyle}>
+                            <h4 className="font-bold text-sm">{section.content.title || 'Gated Content'}</h4>
+                            <p className="text-xs opacity-80 mt-2 line-clamp-2">{section.content.description || 'Unlock this exclusive content.'}</p>
+                            <button className="w-full mt-3 py-2 rounded-md text-sm font-bold" style={actionButtonStyle}>
+                                {parseFloat(section.content.price) > 0 ? `Unlock for ₦${section.content.price}` : 'Access for Free'}
+                            </button>
+                        </div>
+                    </div>
+                );
+
+                case 'events':
+                    case 'masterclass':
+                         const tickets = content.tickets || [];
+                         let priceDisplay = 'Free';
+                         if (isEventType && tickets.length > 0) {
+                             const prices = tickets.map(t => parseFloat(t.price)).filter(p => p >= 0);
+                             if (prices.length > 0) {
+                                 const minPrice = Math.min(...prices);
+                                 priceDisplay = `From ₦${minPrice}`;
+                             }
+                         } else if (!isEventType && parseFloat(content.price) > 0) {
+                             priceDisplay = `₦${content.price}`;
+                         }
+        
+                         return (
+                            <div className="p-2">
+                                <div className="block p-3 rounded-lg shadow-md" style={linkStyle}>
+                                     <div className="w-full h-24 bg-gray-200 rounded-md mb-3">
+                                        {content.cover_image_url && <img src={content.cover_image_url} alt={content.title} className="w-full h-full object-cover rounded-md" />}
+                                    </div>
+                                    <h4 className="font-bold text-sm">{content.title || 'My Awesome Event'}</h4>
+                                    <p className="text-xs opacity-80 mt-1">{new Date(content.event_date).toLocaleString() || 'Event date and time'}</p>
+                                    <button className="w-full mt-3 py-2 rounded-md text-sm font-bold" style={actionButtonStyle}>
+                                        {section.section_type === 'events' ? 'Get Tickets' : 'Register'} - {priceDisplay}
+                                    </button>
+                                </div>
+                            </div>
+                        );
+            case 'lead_capture':
+                return (
+                    <div className="p-2">
+                         <div className="block p-3 rounded-lg shadow-md" style={linkStyle}>
+                             <h4 className="font-bold text-sm">{content.title || 'Join my mailing list'}</h4>
+                             <div className="flex gap-2 mt-3">
+                                <input type="email" placeholder="Enter your email" className="flex-grow w-full px-3 py-2 border rounded-md text-sm bg-white/20 placeholder:text-inherit opacity-70" />
+                                <button className="py-2 px-4 rounded-md text-sm font-bold" style={actionButtonStyle}>
+                                    {content.button_text || 'Subscribe'}
+                                </button>
+                             </div>
+                         </div>
+                    </div>
+                );
             default:
                 return <div className="p-2"><div className="w-full h-16 bg-gray-200 border-2 border-dashed rounded-lg flex items-center justify-center text-sm text-gray-400 capitalize">{section.section_type} Preview</div></div>;
         }

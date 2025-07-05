@@ -17,6 +17,16 @@ import EditHeaderBlock from './editors/EditHeaderBlock.jsx';
 import EditLinkBlock from './editors/EditLinkBlock.jsx';
 import EditVideoCarouselBlock from './editors/EditVideoCarouselBlock.jsx';
 import EditImageCarouselBlock from './editors/EditImageCarouselBlock.jsx';
+import EditDigitalProductBlock from './editors/EditDigitalProductBlock.jsx';
+import EditAppointmentsBlock from './editors/EditAppointmentsBlock.jsx';
+import EditPaywallBlock from './editors/EditPaywallBlock.jsx';
+import EditEventsBlock from './editors/EditEventsBlock.jsx';
+import EditLeadCaptureBlock from './editors/EditLeadCaptureBlock.jsx';
+
+import { useAuth } from '../../hooks/useAuth.js';
+import PremiumIcon from '../../assets/images/premium.png'; // Assuming this path is correct
+import { HiOutlineEye, HiOutlineShare } from 'react-icons/hi';
+
 import DashboardTabs from './DashboardTabs.jsx';
 
 const PageEditor = () => {
@@ -30,6 +40,9 @@ const PageEditor = () => {
     const [isDeleteLoading, setIsDeleteLoading] = useState(false);
     // --- CHANGE END ---
     const editingSection = editingSectionId ? sections.find(s => s.id === editingSectionId) : null;
+
+    const { user } = useAuth();
+    const isProUser = user?.user_type === 'pro';
 
     useEffect(() => {
         if (!pagesLoading && pages.length > 0 && !activePage) {
@@ -101,6 +114,13 @@ const PageEditor = () => {
             case 'links': return <EditLinkBlock section={editingSection} />;
             case 'video_carousel': return <EditVideoCarouselBlock section={editingSection} />;
             case 'carousel': return <EditImageCarouselBlock section={editingSection} />;
+            case 'digital_product': return <EditDigitalProductBlock section={editingSection} />;
+            case 'appointments': return <EditAppointmentsBlock section={editingSection} />;
+            case 'paywall': return <EditPaywallBlock section={editingSection} />;
+            case 'events':
+            case 'masterclass': // --- ADD THIS CASE ---
+                return <EditEventsBlock section={editingSection} />;
+            case 'lead_capture': return <EditLeadCaptureBlock section={editingSection} />;
             default: return <div>Editing for "{editingSection.section_type}" not implemented. <button onClick={() => setEditingSectionId(null)} className="text-prym-pink font-semibold">Go Back</button></div>;
         }
     }
@@ -117,7 +137,7 @@ const PageEditor = () => {
     return (
         <div className="bg-gray-50 p-4 sm:p-6 rounded-2xl">
             <DashboardTabs />
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+            {/* <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
                 <div>
                     <h1 className="text-2xl lg:text-3xl font-bold text-prym-dark-green">{activePage?.brand_name}</h1>
                     <a href={activePage ? `//${activePage.slug}.prymshare.co` : '#'} target="_blank" rel="noopener noreferrer" className="text-prym-pink hover:underline">prymshare.co/{activePage?.slug}</a>
@@ -125,7 +145,38 @@ const PageEditor = () => {
                 <button className="bg-prym-green text-white font-bold py-2 px-6 rounded-lg shadow-md hover:bg-opacity-90 transition-colors w-full sm:w-auto">
                     Share
                 </button>
+            </div> */}
+            <div className="bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-gray-200 flex flex-wrap items-center justify-between gap-4 mb-6">
+                <div className="flex items-center gap-2 text-sm">
+                    <span className="font-semibold text-gray-700">Your live page:</span>
+                    <a href={activePage ? `//${activePage.slug}.prymshare.co` : '#'} target="_blank" rel="noopener noreferrer" className="text-prym-pink hover:underline font-medium truncate">
+                        prymshare.co/{activePage?.slug}
+                    </a>
+                </div>
+                <div className="flex items-center gap-2">
+                     <button className="bg-gray-100 text-gray-700 font-bold py-2 px-3 sm:px-4 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2 text-sm">
+                        <HiOutlineEye/> <span className="hidden sm:inline">Preview</span>
+                    </button>
+                    <button className="bg-prym-dark-green text-white font-bold py-2 px-3 sm:px-4 rounded-lg shadow-md hover:bg-opacity-90 transition-colors flex items-center gap-2 text-sm">
+                        <HiOutlineShare/> <span className="hidden sm:inline">Share</span>
+                    </button>
+                </div>
             </div>
+            {/* --- END CHANGE --- */}
+
+            {/* --- CHANGE START: Go Prime Banner --- */}
+            {!isProUser && (
+                 <div className="bg-prym-dark-green text-white p-6 rounded-2xl flex items-center justify-between gap-6 mb-6">
+                    <div>
+                        <h2 className="font-bold text-xl sm:text-2xl">Go Prime With Pro</h2>
+                        <p className="text-white/80 mt-1 text-sm">Explore customizations, events management, coaching sessions, and much more.</p>
+                        <a href="#" className="mt-4 inline-block bg-white text-prym-dark-green font-bold py-2 px-4 rounded-lg text-sm">
+                            Go pro now!
+                        </a>
+                    </div>
+                    <img src={PremiumIcon} alt="Go Pro" className="h-24 hidden sm:block" />
+                 </div>
+            )}
 
             <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
                 <p className="font-semibold text-prym-dark-green mb-3">Page Display Options</p>
@@ -164,7 +215,7 @@ const PageEditor = () => {
                     onClick={() => setIsModalOpen(true)}
                     className="w-full bg-prym-pink/10 border-2 border-dashed border-prym-pink/30 rounded-lg py-4 text-center text-prym-pink hover:bg-prym-pink/20 hover:border-prym-pink transition-all focus:outline-none"
                 >
-                    <span className="font-semibold text-lg">+ Add Block</span>
+                    <span className="font-semibold text-base sm:text-lg">+ Add Block</span>
                 </button>
             </div>
 

@@ -6,27 +6,27 @@ import { updatePageDetails } from '../../../services/pageService.js';
 import { updateSection } from '../../../services/sectionService.js';
 import { toast } from 'react-hot-toast';
 import { FaTwitter, FaInstagram, FaFacebook, FaLinkedin, FaTiktok, FaYoutube } from 'react-icons/fa';
-import { HiOutlineArrowLeft, HiOutlineUserCircle, HiOutlineNewspaper, HiOutlinePhotograph, HiOutlineChatAlt } from 'react-icons/hi';
-import ImageUploader from '../../ui/ImageUploader.jsx';
 // --- CHANGE START ---
-import { uploadImage } from '../../../services/imageService.js'; // Import the upload service
+import { HiOutlineArrowLeft, HiOutlineViewGrid, HiOutlinePhotograph, HiOutlineNewspaper, HiOutlineUserCircle } from 'react-icons/hi';
 // --- CHANGE END ---
+import ImageUploader from '../../ui/ImageUploader.jsx';
+import { uploadImage } from '../../../services/imageService.js';
 
+// --- CHANGE START: New, more stylish header options based on screenshots ---
 const headerStyles = [
-    { id: 'photo_top', name: 'Photo Top', icon: <HiOutlineUserCircle/> },
-    { id: 'photo_banner', name: 'Photo & Banner', icon: <HiOutlineNewspaper/> },
-    { id: 'banner_only', name: 'Banner Only', icon: <HiOutlinePhotograph/> },
-    { id: 'minimal', name: 'Minimal', icon: <HiOutlineChatAlt/> },
+    { id: 'card_left_image', name: 'Card Left', icon: <HiOutlineViewGrid/> },
+    { id: 'banner_overlay', name: 'Banner Overlay', icon: <HiOutlinePhotograph/> },
+    { id: 'banner_above', name: 'Banner Above', icon: <HiOutlineNewspaper/> },
+    { id: 'side_by_side_center', name: 'Side by Side', icon: <HiOutlineUserCircle/> },
 ];
+// --- CHANGE END ---
 
 const EditHeaderBlock = ({ section }) => {
     const [activePage, setActivePage] = useAtom(activePageAtom);
     const setSections = useSetAtom(pageSectionsAtom);
     const setEditingSectionId = useSetAtom(editingSectionIdAtom);
     const [draft, setDraft] = useState({ brand_name: activePage.brand_name, title: activePage.title, ...section.content });
-    // --- CHANGE START ---
     const [imageLoading, setImageLoading] = useState({ profile: false, banner: false });
-    // --- CHANGE END ---
     const debouncedDraft = useDebounce(draft, 1000);
 
     useEffect(() => {
@@ -60,17 +60,13 @@ const EditHeaderBlock = ({ section }) => {
 
     const handleChange = (e) => setDraft(d => ({ ...d, [e.target.name]: e.target.value }));
 
-    // --- CHANGE START ---
-    // This function now handles the file upload process.
     const handleImageChange = async (name, file) => {
         if (!file) {
             setDraft(d => ({ ...d, [name]: null }));
             return;
         }
-
         const loadingKey = name === 'profileImageUrl' ? 'profile' : 'banner';
         setImageLoading(loading => ({ ...loading, [loadingKey]: true }));
-        
         try {
             const imageUrl = await uploadImage(file);
             setDraft(d => ({ ...d, [name]: imageUrl }));
@@ -81,7 +77,6 @@ const EditHeaderBlock = ({ section }) => {
             setImageLoading(loading => ({ ...loading, [loadingKey]: false }));
         }
     };
-    // --- CHANGE END ---
 
     const handleSocialChange = (e) => setDraft(d => ({ ...d, social_links: { ...d.social_links, [e.target.name]: e.target.value }}));
 
@@ -106,7 +101,7 @@ const EditHeaderBlock = ({ section }) => {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                         {headerStyles.map(style => (
                             <button key={style.id} onClick={() => handleChange({ target: { name: 'style', value: style.id } })}
-                                className={`p-3 border rounded-lg flex flex-col items-center justify-center text-center ${draft.style === style.id ? 'ring-2 ring-prym-pink border-prym-pink' : 'border-gray-200'}`}>
+                                className={`p-3 border-2 rounded-lg flex flex-col items-center justify-center text-center transition-all ${draft.style === style.id ? 'ring-2 ring-prym-pink border-prym-pink' : 'border-gray-200 hover:border-prym-pink/50'}`}>
                                 <span className="text-2xl text-gray-600">{style.icon}</span>
                                 <span className="text-xs mt-1 font-medium">{style.name}</span>
                             </button>
@@ -117,23 +112,19 @@ const EditHeaderBlock = ({ section }) => {
                 <div className="flex items-center gap-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Profile Picture</label>
-                        {/* --- CHANGE START --- */}
                         <ImageUploader 
                             existingImageUrl={draft.profileImageUrl}
                             onImageChange={(file) => handleImageChange('profileImageUrl', file)}
                             isLoading={imageLoading.profile}
                         />
-                        {/* --- CHANGE END --- */}
                     </div>
                      <div className="flex-1">
                         <label className="block text-sm font-medium text-gray-700 mb-1">Banner Image</label>
-                        {/* --- CHANGE START --- */}
                         <ImageUploader 
                             existingImageUrl={draft.bannerImageUrl}
                             onImageChange={(file) => handleImageChange('bannerImageUrl', file)}
                             isLoading={imageLoading.banner}
                         />
-                        {/* --- CHANGE END --- */}
                     </div>
                 </div>
 

@@ -1,7 +1,11 @@
 import React from 'react';
 import { useAtomValue } from 'jotai';
 import { activePageAtom } from '../../state/pageAtoms.js';
+// --- CHANGE START ---
 import { FaTwitter, FaInstagram, FaFacebook, FaLinkedin, FaTiktok, FaYoutube } from 'react-icons/fa';
+import { HiOutlineCalendar, HiOutlineMail } from 'react-icons/hi';
+import { HiOutlineCash, HiOutlineClock, HiOutlineLockClosed } from 'react-icons/hi';
+// --- CHANGE END ---
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
 import 'swiper/css';
@@ -23,20 +27,20 @@ const BlockPreview = ({ section }) => {
         const content = section.content || {};
         switch (section.section_type) {
             
-                case 'header':
-                    const hasSocials = Object.values(content.social_links || {}).some(link => link);
-                    return (
-                        <div className="flex items-center gap-4">
-                            <div className="flex-shrink-0 w-12 h-12 bg-gray-200 rounded-full">
-                               {content.profileImageUrl && <img src={content.profileImageUrl} alt="profile" className="w-full h-full object-cover rounded-full" />}
-                            </div>
-                            <div>
-                                <h4 className="font-semibold text-prym-dark-green">{activePage?.brand_name}</h4>
-                                <p className="text-sm text-gray-600 line-clamp-1">{content.description || "No description yet."}</p>
-                                {hasSocials && <div className="flex items-center space-x-3 mt-2 text-gray-400"><FaTwitter/><FaInstagram/><FaFacebook/></div>}
-                            </div>
+            case 'header':
+                const hasSocials = Object.values(content.social_links || {}).some(link => link);
+                return (
+                    <div className="flex items-center gap-4">
+                        <div className="flex-shrink-0 w-12 h-12 bg-gray-200 rounded-full">
+                           {content.profileImageUrl && <img src={content.profileImageUrl} alt="profile" className="w-full h-full object-cover rounded-full" />}
                         </div>
-                    );
+                        <div>
+                            <h4 className="font-semibold text-prym-dark-green">{activePage?.brand_name}</h4>
+                            <p className="text-sm text-gray-600 line-clamp-1">{content.description || "No description yet."}</p>
+                            {hasSocials && <div className="flex items-center space-x-3 mt-2 text-gray-400"><FaTwitter/><FaInstagram/><FaFacebook/></div>}
+                        </div>
+                    </div>
+                );
             case 'links':
                 const links = content.links || [];
                 if (links.length === 0) return <p className="text-sm text-gray-500">No links added yet.</p>;
@@ -44,7 +48,7 @@ const BlockPreview = ({ section }) => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {links.slice(0, 4).map((link, index) => (
                             <div key={index} className="flex items-center gap-3 text-sm text-gray-700 bg-gray-50 p-2 rounded-md truncate">
-                                {link.imageUrl && <div className="w-8 h-8 bg-gray-200 rounded-md flex-shrink-0"><img src={link.imageUrl} className="w-full h-full object-cover rounded-md" /></div>}
+                                {link.imageUrl && <div className="w-8 h-8 bg-gray-200 rounded-md flex-shrink-0"><img src={link.imageUrl} alt={link.title} className="w-full h-full object-cover rounded-md" /></div>}
                                 <span className="flex-grow truncate">{link.title || link.url}</span>
                             </div>
                         ))}
@@ -61,15 +65,91 @@ const BlockPreview = ({ section }) => {
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                             {items.slice(0, 4).map((item, index) => (
                                 <div key={index} className="aspect-square bg-gray-200 rounded-md">
-                                    {item.imageUrl && <img src={item.imageUrl} className="w-full h-full object-cover rounded-md" />}
+                                    {item.imageUrl && <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover rounded-md" />}
                                     {item.videoUrl && <div className="w-full h-full flex items-center justify-center text-prym-pink text-3xl bg-gray-800 rounded-md"><FaYoutube/></div>}
                                 </div>
                             ))}
                         </div>
                     </div>
                  );
+            // --- CHANGE START ---
+            case 'digital_product':
+                return (
+                    <div className="flex items-center gap-4">
+                        <div className="flex-shrink-0 w-12 h-12 bg-gray-200 rounded-md">
+                           {content.cover_image_url && <img src={content.cover_image_url} alt="product" className="w-full h-full object-cover rounded-md" />}
+                        </div>
+                        <div className="flex-grow">
+                            <h4 className="font-semibold text-prym-dark-green truncate">{content.title || 'Untitled Product'}</h4>
+                            <div className="flex items-center gap-2 text-sm text-gray-500">
+                                <HiOutlineCash />
+                                <span>{parseFloat(content.price) > 0 ? `₦${content.price}` : 'Free'}</span>
+                            </div>
+                        </div>
+                    </div>
+                );
+            case 'appointments':
+                return (
+                     <div className="flex items-center gap-4">
+                        <div className="flex-shrink-0 w-12 h-12 bg-prym-green/10 rounded-md flex items-center justify-center">
+                           <HiOutlineClock className="h-6 w-6 text-prym-green"/>
+                        </div>
+                        <div className="flex-grow">
+                            <h4 className="font-semibold text-prym-dark-green truncate">{content.title || 'Untitled Session'}</h4>
+                            <div className="flex items-center gap-2 text-sm text-gray-500">
+                                <HiOutlineCash />
+                                <span>{parseFloat(content.price) > 0 ? `₦${content.price}` : 'Free'}</span>
+                                <span className="text-gray-300">|</span>
+                                <span>{content.duration || 'N/A'}</span>
+                            </div>
+                        </div>
+                    </div>
+                );
+            case 'paywall':
+                return (
+                     <div className="flex items-center gap-4">
+                        <div className="flex-shrink-0 w-12 h-12 bg-prym-pink/10 rounded-md flex items-center justify-center">
+                           <HiOutlineLockClosed className="h-6 w-6 text-prym-pink"/>
+                        </div>
+                        <div className="flex-grow">
+                            <h4 className="font-semibold text-prym-dark-green truncate">{content.title || 'Untitled Gated Content'}</h4>
+                            <div className="flex items-center gap-2 text-sm text-gray-500">
+                                <HiOutlineCash />
+                                <span>{parseFloat(content.price) > 0 ? `₦${content.price}` : 'Free'}</span>
+                            </div>
+                        </div>
+                    </div>
+                );
+            case 'events':
+                return (
+                     <div className="flex items-center gap-4">
+                        <div className="flex-shrink-0 w-12 h-12 bg-prym-green/10 rounded-md flex items-center justify-center">
+                           <HiOutlineCalendar className="h-6 w-6 text-prym-green"/>
+                        </div>
+                        <div className="flex-grow">
+                            <h4 className="font-semibold text-prym-dark-green truncate">{content.title || 'Untitled Event'}</h4>
+                            <div className="flex items-center gap-2 text-sm text-gray-500">
+                                <HiOutlineCash />
+                                <span>{parseFloat(content.price) > 0 ? `₦${content.price}` : 'Free'}</span>
+                            </div>
+                        </div>
+                    </div>
+                );
+            case 'lead_capture':
+                 return (
+                     <div className="flex items-center gap-4">
+                        <div className="flex-shrink-0 w-12 h-12 bg-prym-pink/10 rounded-md flex items-center justify-center">
+                           <HiOutlineMail className="h-6 w-6 text-prym-pink"/>
+                        </div>
+                        <div className="flex-grow">
+                            <h4 className="font-semibold text-prym-dark-green truncate">{content.title || 'Untitled Lead Capture'}</h4>
+                            <p className="text-sm text-gray-500">Button: "{content.button_text || 'Subscribe'}"</p>
+                        </div>
+                    </div>
+                );
             default:
-                return <p className="text-sm text-gray-500">No preview available for this block type.</p>;
+                return <p className="text-sm text-gray-500">No preview available for the <span className="font-semibold">{section.section_type.replace('_', ' ')}</span> block.</p>;
+            // --- CHANGE END ---
         }
     };
 

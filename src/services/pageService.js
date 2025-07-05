@@ -17,3 +17,9 @@ export const updatePageDetails = async (pageId, pageData) => {
     const response = await apiClient.patch(`/pages/${pageId}/`, pageData);
     return response.data;
 };
+
+
+export const getPublicPage = async (slug) => {
+    const response = await apiClient.get(`/public/${slug}/`);
+    return response.data;
+};

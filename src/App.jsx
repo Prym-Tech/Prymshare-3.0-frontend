@@ -19,6 +19,8 @@ import OnboardingPage from './pages/OnboardingPage.jsx';
 import CustomizePage from './pages/CustomizePage.jsx';
 import StorePage from './pages/StorePage.jsx';
 import PaymentSettingsPage from './pages/PaymentSettingsPage.jsx';
+import PublicPageViewer from './pages/PublicPageViewer.jsx';
+import AnalyticsPage from './pages/AnalyticsPage.jsx';
 
 import PageEditor from './components/dashboard/PageEditor.jsx';
 import Spinner from './components/ui/Spinner.jsx';
@@ -42,6 +44,7 @@ function App() {
 
   return (
     <Routes>
+      <Route path="/:slug" element={<PublicPageViewer />} />
       <Route element={<MainLayout />}>
         <Route path="/" element={<HomePage />} />
       </Route>
@@ -61,6 +64,7 @@ function App() {
             <Route path="/me/customize" element={<CustomizePage />} /> 
             <Route path="/me/store" element={<StorePage />} />
             <Route path="/me/payments" element={<PaymentSettingsPage />} />
+            <Route path="/me/analytics" element={<AnalyticsPage />} />
         </Route>
       </Route>
     </Routes>
